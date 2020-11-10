@@ -1,0 +1,508 @@
+\documentclass[9pt,letterpaper]{article}
+\usepackage[left=1.5cm, right=1.5cm, top=2cm]{geometry}
+\usepackage{ltablex}
+\usepackage{makecell}
+\usepackage{tabularx}
+\renewcommand\familydefault{\sfdefault}
+\usepackage[T1]{fontenc}
+\usepackage[usenames, dvipsnames]{color}
+\definecolor{parentcolor}{rgb}{0.325, 0.408, 0.584}
+\definecolor{modulecolor}{rgb}{1.000, 1.000, 1.000}
+
+\date{}
+
+\renewcommand{\contentsname}{Modules}
+
+\usepackage{hyperref}
+\setcounter{tocdepth}{3}
+\hypersetup{
+    colorlinks=true, %set true if you want colored links
+    linktoc=all,     %set to all if you want both sections and subsections linked
+    linkcolor=black, %choose some color if you want links to stand out
+}
+
+\title{Optohybrid v3 Address Table}
+% START: ADDRESS_TABLE_VERSION :: DO NOT EDIT
+% END: ADDRESS_TABLE_VERSION :: DO NOT EDIT
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+% START: ADDRESS_TABLE :: DO NOT EDIT
+
+    \pagebreak
+    \section{Module: FPGA.CONTROL \hfill \texttt{0x0}}
+
+    Implements various control and monitoring functions of the Optohybrid\\
+
+    \renewcommand{\arraystretch}{1.3}
+    \noindent
+    \subsection*{\textcolor{parentcolor}{\textbf{FPGA.CONTROL.LOOPBACK}}}
+
+    \vspace{4mm}
+    \noindent
+    Loopback data register for testing read/write communication with the Optohybrid FPGA
+    \noindent
+
+    \keepXColumns
+    \begin{tabularx}{\linewidth}{ | l | l | r | c | l | X | }
+    \hline
+    \textbf{Node} & \textbf{Adr} & \textbf{Bits} & \textbf{Perm} & \textbf{Def} & \textbf{Description} \\\hline
+    \nopagebreak
+    DATA & \texttt{0x0} & \texttt{[31:0]} & rw & \texttt{0x1234567} & Write/Read Data Port \\\hline
+    \end{tabularx}
+    \vspace{5mm}
+
+
+    \noindent
+    \subsection*{\textcolor{parentcolor}{\textbf{FPGA.CONTROL.RELEASE}}}
+
+    \vspace{4mm}
+    \noindent
+    Optohybrid Firmware Release Date and Version
+    \noindent
+
+    \keepXColumns
+    \begin{tabularx}{\linewidth}{ | l | l | r | c | l | X | }
+    \hline
+    \textbf{Node} & \textbf{Adr} & \textbf{Bits} & \textbf{Perm} & \textbf{Def} & \textbf{Description} \\\hline
+    \nopagebreak
+    DATE & \texttt{0x1} & \texttt{[31:0]} & r & \texttt{} & Release YYYY/MM/DD \\\hline
+    \end{tabularx}
+    \vspace{5mm}
+
+
+    \noindent
+    \subsection*{\textcolor{parentcolor}{\textbf{FPGA.CONTROL.RELEASE.VERSION}}}
+
+    \vspace{4mm}
+    \noindent
+    Optohybrid Release Version (XX.YY.ZZ.AA)                                                           \\\\ XX indicates the firmware major version                                                           \\\\ YY indicates the firmware minor version                                                           \\\\ ZZ indicates the firmware patch                                                           \\\\ AA indicates the hardware generation (0C = GE1/1 v3C short, 1C = GE1/1 v3C long, 2A = GE2/1 v1)                                                           
+    \noindent
+
+    \keepXColumns
+    \begin{tabularx}{\linewidth}{ | l | l | r | c | l | X | }
+    \hline
+    \textbf{Node} & \textbf{Adr} & \textbf{Bits} & \textbf{Perm} & \textbf{Def} & \textbf{Description} \\\hline
+    \nopagebreak
+    MAJOR & \texttt{0x2} & \texttt{[7:0]} & r & \texttt{} & Release semantic version major \\\hline
+    MINOR & \texttt{0x2} & \texttt{[15:8]} & r & \texttt{} & Release semantic version minor \\\hline
+    BUILD & \texttt{0x2} & \texttt{[23:16]} & r & \texttt{} & Release semantic version build \\\hline
+    GENERATION & \texttt{0x2} & \texttt{[31:24]} & r & \texttt{} & Release semantic version build \\\hline
+    \end{tabularx}
+    \vspace{5mm}
+
+
+    \noindent
+    \subsection*{\textcolor{parentcolor}{\textbf{FPGA.CONTROL.SEM}}}
+
+    \vspace{4mm}
+    \noindent
+    Connects to Outputs of the FPGA's built-in single event upset monitoring system
+    \noindent
+
+    \keepXColumns
+    \begin{tabularx}{\linewidth}{ | l | l | r | c | l | X | }
+    \hline
+    \textbf{Node} & \textbf{Adr} & \textbf{Bits} & \textbf{Perm} & \textbf{Def} & \textbf{Description} \\\hline
+    \nopagebreak
+    CNT\_SEM\_CRITICAL & \texttt{0x3} & \texttt{[15:0]} & r & \texttt{} & Counts of critical single event upsets \\\hline
+    CNT\_SEM\_CORRECTION & \texttt{0x4} & \texttt{[31:16]} & r & \texttt{} & Counts of corrected single event upsets \\\hline
+    \end{tabularx}
+    \vspace{5mm}
+
+
+    \noindent
+    \subsection*{\textcolor{parentcolor}{\textbf{FPGA.CONTROL.VFAT}}}
+
+    \vspace{4mm}
+    \noindent
+    Controls the 12 VFAT reset outputs from the FPGA
+    \noindent
+
+    \keepXColumns
+    \begin{tabularx}{\linewidth}{ | l | l | r | c | l | X | }
+    \hline
+    \textbf{Node} & \textbf{Adr} & \textbf{Bits} & \textbf{Perm} & \textbf{Def} & \textbf{Description} \\\hline
+    \nopagebreak
+    RESET & \texttt{0x5} & \texttt{[11:0]} & rw & \texttt{0x0} & Mask of VFAT Reset Outputs; 1=reset 0=enable \\\hline
+    \end{tabularx}
+    \vspace{5mm}
+
+
+    \noindent
+    \subsection*{\textcolor{parentcolor}{\textbf{FPGA.CONTROL.TTC}}}
+
+    \vspace{4mm}
+    \noindent
+    TTC Status and Control
+    \noindent
+
+    \keepXColumns
+    \begin{tabularx}{\linewidth}{ | l | l | r | c | l | X | }
+    \hline
+    \textbf{Node} & \textbf{Adr} & \textbf{Bits} & \textbf{Perm} & \textbf{Def} & \textbf{Description} \\\hline
+    \nopagebreak
+    BX0\_CNT\_LOCAL & \texttt{0x8} & \texttt{[23:0]} & r & \texttt{} & TTC BX0 Local Counter \\\hline
+    BX0\_CNT\_TTC & \texttt{0x9} & \texttt{[23:0]} & r & \texttt{} & TTC BX0 Received Counter \\\hline
+    BXN\_CNT\_LOCAL & \texttt{0xa} & \texttt{[11:0]} & r & \texttt{} & TTC BXN Counter \\\hline
+    BXN\_SYNC\_ERR & \texttt{0xb} & \texttt{[12:12]} & r & \texttt{} & BXN Synchronization Error; Local BXN and received BXN do not match \\\hline
+    BX0\_SYNC\_ERR & \texttt{0xc} & \texttt{[13:13]} & r & \texttt{} & BX0 Synchronization Error \\\hline
+    BXN\_OFFSET & \texttt{0xd} & \texttt{[27:16]} & rw & \texttt{0x0} & Local BXN counter offset (starting value at resync) \\\hline
+    L1A\_CNT & \texttt{0xe} & \texttt{[23:0]} & r & \texttt{} & L1A Received Counter \\\hline
+    BXN\_SYNC\_ERR\_CNT & \texttt{0xf} & \texttt{[15:0]} & r & \texttt{} & BXN Sync Error Counter \\\hline
+    BX0\_SYNC\_ERR\_CNT & \texttt{0x10} & \texttt{[31:16]} & r & \texttt{} & BX0 Sync Error Counter \\\hline
+    \end{tabularx}
+    \vspace{5mm}
+
+
+    \noindent
+    \subsection*{\textcolor{parentcolor}{\textbf{FPGA.CONTROL.SBITS}}}
+
+    \vspace{4mm}
+    \noindent
+    S-bit and Cluster Packing Rate
+    \noindent
+
+    \keepXColumns
+    \begin{tabularx}{\linewidth}{ | l | l | r | c | l | X | }
+    \hline
+    \textbf{Node} & \textbf{Adr} & \textbf{Bits} & \textbf{Perm} & \textbf{Def} & \textbf{Description} \\\hline
+    \nopagebreak
+    CLUSTER\_RATE & \texttt{0x11} & \texttt{[31:0]} & r & \texttt{} & Trigger cluster rate measured in Hz \\\hline
+    \end{tabularx}
+    \vspace{5mm}
+
+
+    \noindent
+    \subsection*{\textcolor{parentcolor}{\textbf{FPGA.CONTROL.HDMI}}}
+
+    \vspace{4mm}
+    \noindent
+    HDMI Connector Control:                                                       \\\\ Mode=0: Each signal is a single VFAT. The VFAT of interest is chosen by SBIT\_SEL                                                       \\\\ Mode=1: Each signal is the OR of three VFATs in an ieta row. The row of interest is configured by SBIT\_SEL                                                       \\\\ Mode=2: Each signal is the OR of four VFATs in an iphi half column (e.g. 0-3, 4-7, 8-11, 12-15, 16-19, 20-23)
+    \noindent
+
+    \keepXColumns
+    \begin{tabularx}{\linewidth}{ | l | l | r | c | l | X | }
+    \hline
+    \textbf{Node} & \textbf{Adr} & \textbf{Bits} & \textbf{Perm} & \textbf{Def} & \textbf{Description} \\\hline
+    \nopagebreak
+    SBIT\_SEL0 & \texttt{0x12} & \texttt{[4:0]} & rw & \texttt{0x0} & HDMI Output 0 S-bit select \\\hline
+    SBIT\_SEL1 & \texttt{0x12} & \texttt{[9:5]} & rw & \texttt{0x0} & HDMI Output 1 S-bit select \\\hline
+    SBIT\_SEL2 & \texttt{0x12} & \texttt{[14:10]} & rw & \texttt{0x0} & HDMI Output 2 S-bit select \\\hline
+    SBIT\_SEL3 & \texttt{0x12} & \texttt{[19:15]} & rw & \texttt{0x0} & HDMI Output 3 S-bit select \\\hline
+    SBIT\_SEL4 & \texttt{0x12} & \texttt{[24:20]} & rw & \texttt{0x0} & HDMI Output 4 S-bit select \\\hline
+    SBIT\_SEL5 & \texttt{0x12} & \texttt{[29:25]} & rw & \texttt{0x0} & HDMI Output 5 S-bit select \\\hline
+    SBIT\_SEL6 & \texttt{0x13} & \texttt{[4:0]} & rw & \texttt{0x0} & HDMI Output 6 S-bit select \\\hline
+    SBIT\_SEL7 & \texttt{0x13} & \texttt{[9:5]} & rw & \texttt{0x0} & HDMI Output 7 S-bit select \\\hline
+    SBIT\_MODE0 & \texttt{0x13} & \texttt{[11:10]} & rw & \texttt{0x0} & HDMI Output 0 S-bit mode \\\hline
+    SBIT\_MODE1 & \texttt{0x13} & \texttt{[13:12]} & rw & \texttt{0x0} & HDMI Output 1 S-bit mode \\\hline
+    SBIT\_MODE2 & \texttt{0x13} & \texttt{[15:14]} & rw & \texttt{0x0} & HDMI Output 2 S-bit mode \\\hline
+    SBIT\_MODE3 & \texttt{0x13} & \texttt{[17:16]} & rw & \texttt{0x0} & HDMI Output 3 S-bit mode \\\hline
+    SBIT\_MODE4 & \texttt{0x13} & \texttt{[19:18]} & rw & \texttt{0x0} & HDMI Output 4 S-bit mode \\\hline
+    SBIT\_MODE5 & \texttt{0x13} & \texttt{[21:20]} & rw & \texttt{0x0} & HDMI Output 5 S-bit mode \\\hline
+    SBIT\_MODE6 & \texttt{0x13} & \texttt{[23:22]} & rw & \texttt{0x0} & HDMI Output 6 S-bit mode \\\hline
+    SBIT\_MODE7 & \texttt{0x13} & \texttt{[25:24]} & rw & \texttt{0x0} & HDMI Output 7 S-bit mode \\\hline
+    \end{tabularx}
+    \vspace{5mm}
+
+
+    \noindent
+    \subsection*{\textcolor{parentcolor}{\textbf{FPGA.CONTROL.CNT\_SNAP}}}
+
+    \vspace{4mm}
+    \noindent
+    Control the global counter snapshot
+    \noindent
+
+    \keepXColumns
+    \begin{tabularx}{\linewidth}{ | l | l | r | c | l | X | }
+    \hline
+    \textbf{Node} & \textbf{Adr} & \textbf{Bits} & \textbf{Perm} & \textbf{Def} & \textbf{Description} \\\hline
+    \nopagebreak
+    PULSE & \texttt{0x14} & \texttt{[0:0]} & w & Pulse & Pulse to take a counter snapshot \\\hline
+    DISABLE & \texttt{0x15} & \texttt{[1:1]} & rw & \texttt{0x1} & 0=enable snapshots (counters freeze synchronously and need a snapshot to update) \\\hline
+    \end{tabularx}
+    \vspace{5mm}
+
+
+    \noindent
+    \subsection*{\textcolor{parentcolor}{\textbf{FPGA.CONTROL.DNA}}}
+
+    \vspace{4mm}
+    \noindent
+    57 Bit FPGA-specific device identifier
+    \noindent
+
+    \keepXColumns
+    \begin{tabularx}{\linewidth}{ | l | l | r | c | l | X | }
+    \hline
+    \textbf{Node} & \textbf{Adr} & \textbf{Bits} & \textbf{Perm} & \textbf{Def} & \textbf{Description} \\\hline
+    \nopagebreak
+    DNA\_LSBS & \texttt{0x17} & \texttt{[31:0]} & r & \texttt{} & Device DNA bits 31 downto 0 \\\hline
+    DNA\_MSBS & \texttt{0x18} & \texttt{[24:0]} & r & \texttt{} & Device DNA bits 56 downto 32 \\\hline
+    \end{tabularx}
+    \vspace{5mm}
+
+
+    \noindent
+    \subsection*{\textcolor{parentcolor}{\textbf{FPGA.CONTROL}}}
+
+    \vspace{4mm}
+    \noindent
+    Implements various control and monitoring functions of the Optohybrid
+    \noindent
+
+    \keepXColumns
+    \begin{tabularx}{\linewidth}{ | l | l | r | c | l | X | }
+    \hline
+    \textbf{Node} & \textbf{Adr} & \textbf{Bits} & \textbf{Perm} & \textbf{Def} & \textbf{Description} \\\hline
+    \nopagebreak
+    UPTIME & \texttt{0x19} & \texttt{[19:0]} & r & \texttt{} & Uptime in seconds \\\hline
+    USR\_ACCESS & \texttt{0x20} & \texttt{[31:0]} & r & \texttt{} & Git hash read from USR\_ACCESS field \\\hline
+    \end{tabularx}
+    \vspace{5mm}
+
+
+    \noindent
+    \subsection*{\textcolor{parentcolor}{\textbf{FPGA.CONTROL.HOG}}}
+
+    \keepXColumns
+    \begin{tabularx}{\linewidth}{ | l | l | r | c | l | X | }
+    \hline
+    \textbf{Node} & \textbf{Adr} & \textbf{Bits} & \textbf{Perm} & \textbf{Def} & \textbf{Description} \\\hline
+    \nopagebreak
+    GLOBAL\_DATE & \texttt{0x21} & \texttt{[31:0]} & r & \texttt{} & HOG Global Date \\\hline
+    GLOBAL\_TIME & \texttt{0x22} & \texttt{[31:0]} & r & \texttt{} & HOG Global Time \\\hline
+    GLOBAL\_VER & \texttt{0x23} & \texttt{[31:0]} & r & \texttt{} & HOG Global Version \\\hline
+    GLOBAL\_SHA & \texttt{0x24} & \texttt{[31:0]} & r & \texttt{} & HOG Global SHA \\\hline
+    TOP\_SHA & \texttt{0x25} & \texttt{[31:0]} & r & \texttt{} & HOG Top SHA \\\hline
+    TOP\_VER & \texttt{0x26} & \texttt{[31:0]} & r & \texttt{} & HOG Top Version \\\hline
+    HOG\_SHA & \texttt{0x27} & \texttt{[31:0]} & r & \texttt{} & HOG SHA \\\hline
+    HOG\_VER & \texttt{0x28} & \texttt{[31:0]} & r & \texttt{} & HOG Version \\\hline
+    OH\_SHA & \texttt{0x29} & \texttt{[31:0]} & r & \texttt{} & OH SHA \\\hline
+    OH\_VER & \texttt{0x2a} & \texttt{[31:0]} & r & \texttt{} & OH Version \\\hline
+    FLAVOUR & \texttt{0x2b} & \texttt{[31:0]} & r & \texttt{} & Flavor \\\hline
+    \end{tabularx}
+    \vspace{5mm}
+
+
+
+    \pagebreak
+    \section{Module: FPGA.ADC \hfill \texttt{0x1000}}
+
+    Connects to the Virtex-6 XADC and allows for reading of temperature, VCCINT, and VCCAUX voltages\\
+
+    \renewcommand{\arraystretch}{1.3}
+    \noindent
+    \subsection*{\textcolor{parentcolor}{\textbf{FPGA.ADC.CTRL}}}
+
+    \keepXColumns
+    \begin{tabularx}{\linewidth}{ | l | l | r | c | l | X | }
+    \hline
+    \textbf{Node} & \textbf{Adr} & \textbf{Bits} & \textbf{Perm} & \textbf{Def} & \textbf{Description} \\\hline
+    \nopagebreak
+    OVERTEMP & \texttt{0x1000} & \texttt{[0:0]} & r & \texttt{} & FPGA over temperature \\\hline
+    VCCAUX\_ALARM & \texttt{0x1000} & \texttt{[1:1]} & r & \texttt{} & FPGA VCCAUX Alarm \\\hline
+    VCCINT\_ALARM & \texttt{0x1000} & \texttt{[2:2]} & r & \texttt{} & FPGA VCCINT Alarm \\\hline
+    ADR\_IN & \texttt{0x1000} & \texttt{[9:3]} & rw & \texttt{0x0} & XADC Addr In \\\hline
+    ENABLE & \texttt{0x1000} & \texttt{[10:10]} & rw & \texttt{0x1} & XADC Data In \\\hline
+    CNT\_OVERTEMP & \texttt{0x1000} & \texttt{[17:11]} & r & \texttt{} & Overtemperature counter \\\hline
+    CNT\_VCCAUX\_ALARM & \texttt{0x1000} & \texttt{[24:18]} & r & \texttt{} & VCCAUX Alarm Counter \\\hline
+    CNT\_VCCINT\_ALARM & \texttt{0x1000} & \texttt{[31:25]} & r & \texttt{} & VCCINT Alarm Counter \\\hline
+    DATA\_IN & \texttt{0x1001} & \texttt{[15:0]} & rw & \texttt{0x0} & XADC Data In \\\hline
+    DATA\_OUT & \texttt{0x1001} & \texttt{[31:16]} & r & \texttt{} & XADC Data Out \\\hline
+    RESET & \texttt{0x1002} & \texttt{[0:0]} & w & Pulse & XADC Reset \\\hline
+    WR\_EN & \texttt{0x1003} & \texttt{[0:0]} & w & Pulse & XADC Write Enable \\\hline
+    \end{tabularx}
+    \vspace{5mm}
+
+
+
+    \pagebreak
+    \section{Module: FPGA.TRIG \hfill \texttt{0x2000}}
+
+    Connects to the trigger control module\\
+
+    \renewcommand{\arraystretch}{1.3}
+    \noindent
+    \subsection*{\textcolor{parentcolor}{\textbf{FPGA.TRIG.CTRL}}}
+
+    \vspace{4mm}
+    \noindent
+    Controls and monitors various parameters of the S-bit deserialization and cluster building.
+    \noindent
+
+    \keepXColumns
+    \begin{tabularx}{\linewidth}{ | l | l | r | c | l | X | }
+    \hline
+    \textbf{Node} & \textbf{Adr} & \textbf{Bits} & \textbf{Perm} & \textbf{Def} & \textbf{Description} \\\hline
+    \nopagebreak
+    VFAT\_MASK & \texttt{0x2000} & \texttt{[11:0]} & rw & \texttt{0x0} & 12 bit mask of VFATs (1=off) \\\hline
+    SBIT\_DEADTIME & \texttt{0x2000} & \texttt{[27:24]} & rw & \texttt{0x7} & Set programmable oneshot deadtime which applies to retriggers on individual VFAT channels \\\hline
+    ACTIVE\_VFATS & \texttt{0x2001} & \texttt{[11:0]} & r & \texttt{} & 12 bit list of VFATs with hits in this BX \\\hline
+    CNT\_OVERFLOW & \texttt{0x2002} & \texttt{[15:0]} & r & \texttt{} & Overflow Counter (more than 8 clusters in a bx) \\\hline
+    ALIGNED\_COUNT\_TO\_READY & \texttt{0x2002} & \texttt{[27:16]} & rw & \texttt{0x1FF} & Number of link consecutive good frames required before the transmission unit is marked as good and S-bits can be produced \\\hline
+    SBIT\_SOT\_READY & \texttt{0x2003} & \texttt{[11:0]} & r & \texttt{} & 12 bit list of VFATs with stable Start-of-frame pulses (in sync for a number of clock cycles) \\\hline
+    SBIT\_SOT\_UNSTABLE & \texttt{0x2004} & \texttt{[11:0]} & r & \texttt{} & 12 bit list of VFATs with unstable Start-of-frame pulses (became misaligned after already achieving lock) \\\hline
+    \end{tabularx}
+    \vspace{5mm}
+
+
+    \noindent
+    \subsection*{\textcolor{parentcolor}{\textbf{FPGA.TRIG.CTRL.SBITS\_MUX}}}
+
+    \vspace{4mm}
+    \noindent
+    Multiplexed copy of Sbits from a selected VFAT
+    \noindent
+
+    \keepXColumns
+    \begin{tabularx}{\linewidth}{ | l | l | r | c | l | X | }
+    \hline
+    \textbf{Node} & \textbf{Adr} & \textbf{Bits} & \textbf{Perm} & \textbf{Def} & \textbf{Description} \\\hline
+    \nopagebreak
+    SBIT\_MUX\_SEL & \texttt{0x200e} & \texttt{[8:4]} & rw & \texttt{0x10} & Select a VFAT which will connect to the S-bit multiplexer \\\hline
+    SBITS\_MUX\_LSB & \texttt{0x200f} & \texttt{[31:0]} & r & \texttt{} & Multiplexed S-bits 31 to 0 \\\hline
+    SBITS\_MUX\_MSB & \texttt{0x2010} & \texttt{[31:0]} & r & \texttt{} & Multiplexed S-bits 63 to 32 \\\hline
+    \end{tabularx}
+    \vspace{5mm}
+
+
+    \noindent
+    \subsection*{\textcolor{parentcolor}{\textbf{FPGA.TRIG.CNT}}}
+
+    \vspace{4mm}
+    \noindent
+    S-BIT Counters \\\\  Set CNT\_PERSIST to 1 to accumulate. Otherwise the counters will automatically reset after a programmable time (default is 1 second). By default this time is 1 second, making these counters a rate counter in Hertz
+    \noindent
+
+    \keepXColumns
+    \begin{tabularx}{\linewidth}{ | l | l | r | c | l | X | }
+    \hline
+    \textbf{Node} & \textbf{Adr} & \textbf{Bits} & \textbf{Perm} & \textbf{Def} & \textbf{Description} \\\hline
+    \nopagebreak
+    VFAT0\_SBITS & \texttt{0x2017} & \texttt{[31:0]} & r & \texttt{} & VFAT 0 Counter \\\hline
+    VFAT1\_SBITS & \texttt{0x2018} & \texttt{[31:0]} & r & \texttt{} & VFAT 1 Counter \\\hline
+    VFAT2\_SBITS & \texttt{0x2019} & \texttt{[31:0]} & r & \texttt{} & VFAT 2 Counter \\\hline
+    VFAT3\_SBITS & \texttt{0x201a} & \texttt{[31:0]} & r & \texttt{} & VFAT 3 Counter \\\hline
+    VFAT4\_SBITS & \texttt{0x201b} & \texttt{[31:0]} & r & \texttt{} & VFAT 4 Counter \\\hline
+    VFAT5\_SBITS & \texttt{0x201c} & \texttt{[31:0]} & r & \texttt{} & VFAT 5 Counter \\\hline
+    VFAT6\_SBITS & \texttt{0x201d} & \texttt{[31:0]} & r & \texttt{} & VFAT 6 Counter \\\hline
+    VFAT7\_SBITS & \texttt{0x201e} & \texttt{[31:0]} & r & \texttt{} & VFAT 7 Counter \\\hline
+    VFAT8\_SBITS & \texttt{0x201f} & \texttt{[31:0]} & r & \texttt{} & VFAT 8 Counter \\\hline
+    VFAT9\_SBITS & \texttt{0x2020} & \texttt{[31:0]} & r & \texttt{} & VFAT 9 Counter \\\hline
+    VFAT10\_SBITS & \texttt{0x2021} & \texttt{[31:0]} & r & \texttt{} & VFAT 10 Counter \\\hline
+    VFAT11\_SBITS & \texttt{0x2022} & \texttt{[31:0]} & r & \texttt{} & VFAT 11 Counter \\\hline
+    RESET & \texttt{0x202f} & \texttt{[0:0]} & w & Pulse & Reset S-bit counters \\\hline
+    SBIT\_CNT\_PERSIST & \texttt{0x2030} & \texttt{[0:0]} & rw & \texttt{0x0} & 1=counters will persist until manually reset; \\ & & & & &                                0=counters will automatically reset at CNT\_TIME \\\hline
+    SBIT\_CNT\_TIME\_MAX & \texttt{0x2031} & \texttt{[31:0]} & rw & \texttt{0x2638E98} & Number of BX that the VFAT S-bit counters will count to before automatically resetting to zero \\\hline
+    CLUSTER\_COUNT & \texttt{0x2032} & \texttt{[31:0]} & r & \texttt{} & VFAT Cluster Counter (chamber) \\\hline
+    SBITS\_OVER\_64x0 & \texttt{0x2036} & \texttt{[15:0]} & r & \texttt{} & More than 64 * 0 Sbits in a bx Counter \\\hline
+    SBITS\_OVER\_64x1 & \texttt{0x2037} & \texttt{[15:0]} & r & \texttt{} & More than 64 * 1 Sbits in a bx Counter \\\hline
+    SBITS\_OVER\_64x2 & \texttt{0x2038} & \texttt{[15:0]} & r & \texttt{} & More than 64 * 2 Sbits in a bx Counter \\\hline
+    SBITS\_OVER\_64x3 & \texttt{0x2039} & \texttt{[15:0]} & r & \texttt{} & More than 64 * 3 Sbits in a bx Counter \\\hline
+    SBITS\_OVER\_64x4 & \texttt{0x203a} & \texttt{[15:0]} & r & \texttt{} & More than 64 * 4 Sbits in a bx Counter \\\hline
+    SBITS\_OVER\_64x5 & \texttt{0x203b} & \texttt{[15:0]} & r & \texttt{} & More than 64 * 5 Sbits in a bx Counter \\\hline
+    SBITS\_OVER\_64x6 & \texttt{0x203c} & \texttt{[15:0]} & r & \texttt{} & More than 64 * 6 Sbits in a bx Counter \\\hline
+    SBITS\_OVER\_64x7 & \texttt{0x203d} & \texttt{[15:0]} & r & \texttt{} & More than 64 * 7 Sbits in a bx Counter \\\hline
+    SBITS\_OVER\_64x8 & \texttt{0x203e} & \texttt{[15:0]} & r & \texttt{} & More than 64 * 8 Sbits in a bx Counter \\\hline
+    SBITS\_OVER\_64x9 & \texttt{0x203f} & \texttt{[15:0]} & r & \texttt{} & More than 64 * 9 Sbits in a bx Counter \\\hline
+    SBITS\_OVER\_64x10 & \texttt{0x2040} & \texttt{[15:0]} & r & \texttt{} & More than 64 * 10 Sbits in a bx Counter \\\hline
+    SBITS\_OVER\_64x11 & \texttt{0x2041} & \texttt{[15:0]} & r & \texttt{} & More than 64 * 11 Sbits in a bx Counter \\\hline
+    \end{tabularx}
+    \vspace{5mm}
+
+
+    \noindent
+    \subsection*{\textcolor{parentcolor}{\textbf{FPGA.TRIG.SBIT\_MONITOR}}}
+
+    \vspace{4mm}
+    \noindent
+    sbit monitor module which shows the first valid sbit clusters after a reset on the selected link
+    \noindent
+
+    \keepXColumns
+    \begin{tabularx}{\linewidth}{ | l | l | r | c | l | X | }
+    \hline
+    \textbf{Node} & \textbf{Adr} & \textbf{Bits} & \textbf{Perm} & \textbf{Def} & \textbf{Description} \\\hline
+    \nopagebreak
+    RESET & \texttt{0x2090} & \texttt{[31:0]} & w & Pulse & Reset the sbit monitor module and re-arm for triggering \\\hline
+    CLUSTER0 & \texttt{0x2091} & \texttt{[15:0]} & r & \texttt{} & Last cluster 0 \\\hline
+    CLUSTER1 & \texttt{0x2092} & \texttt{[15:0]} & r & \texttt{} & Last cluster 1 \\\hline
+    CLUSTER2 & \texttt{0x2093} & \texttt{[15:0]} & r & \texttt{} & Last cluster 2 \\\hline
+    CLUSTER3 & \texttt{0x2094} & \texttt{[15:0]} & r & \texttt{} & Last cluster 3 \\\hline
+    CLUSTER4 & \texttt{0x2095} & \texttt{[15:0]} & r & \texttt{} & Last cluster 4 \\\hline
+    CLUSTER5 & \texttt{0x2096} & \texttt{[15:0]} & r & \texttt{} & Last cluster 5 \\\hline
+    CLUSTER6 & \texttt{0x2097} & \texttt{[15:0]} & r & \texttt{} & Last cluster 6 \\\hline
+    CLUSTER7 & \texttt{0x2098} & \texttt{[15:0]} & r & \texttt{} & Last cluster 7 \\\hline
+    L1A\_DELAY & \texttt{0x20a0} & \texttt{[31:0]} & r & \texttt{} & Number of BX between this sbit and the subsequent L1A \\\hline
+    \end{tabularx}
+    \vspace{5mm}
+
+
+    \noindent
+    \subsection*{\textcolor{parentcolor}{\textbf{FPGA.TRIG.SBIT\_HITMAP}}}
+
+    \vspace{4mm}
+    \noindent
+    The Sbit hitmap module accumulates all incoming Sbits during a period of time
+    \noindent
+
+    \keepXColumns
+    \begin{tabularx}{\linewidth}{ | l | l | r | c | l | X | }
+    \hline
+    \textbf{Node} & \textbf{Adr} & \textbf{Bits} & \textbf{Perm} & \textbf{Def} & \textbf{Description} \\\hline
+    \nopagebreak
+    RESET & \texttt{0x20b0} & \texttt{[31:0]} & w & Pulse & Reset the accumulation registers \\\hline
+    ACQUIRE & \texttt{0x20b1} & \texttt{[0:0]} & rw & \texttt{0x0} & Sbits are accumulated as long as this flag is set \\\hline
+    VFAT0\_MSB & \texttt{0x20b2} & \texttt{[31:0]} & r & \texttt{} & Accumulator for Sbit 63 to 32 of VFAT0 \\\hline
+    VFAT0\_LSB & \texttt{0x20b3} & \texttt{[31:0]} & r & \texttt{} & Accumulator for Sbit 31 to 0 of VFAT0 \\\hline
+    VFAT1\_MSB & \texttt{0x20b4} & \texttt{[31:0]} & r & \texttt{} & Accumulator for Sbit 63 to 32 of VFAT1 \\\hline
+    VFAT1\_LSB & \texttt{0x20b5} & \texttt{[31:0]} & r & \texttt{} & Accumulator for Sbit 31 to 0 of VFAT1 \\\hline
+    VFAT2\_MSB & \texttt{0x20b6} & \texttt{[31:0]} & r & \texttt{} & Accumulator for Sbit 63 to 32 of VFAT2 \\\hline
+    VFAT2\_LSB & \texttt{0x20b7} & \texttt{[31:0]} & r & \texttt{} & Accumulator for Sbit 31 to 0 of VFAT2 \\\hline
+    VFAT3\_MSB & \texttt{0x20b8} & \texttt{[31:0]} & r & \texttt{} & Accumulator for Sbit 63 to 32 of VFAT3 \\\hline
+    VFAT3\_LSB & \texttt{0x20b9} & \texttt{[31:0]} & r & \texttt{} & Accumulator for Sbit 31 to 0 of VFAT3 \\\hline
+    VFAT4\_MSB & \texttt{0x20ba} & \texttt{[31:0]} & r & \texttt{} & Accumulator for Sbit 63 to 32 of VFAT4 \\\hline
+    VFAT4\_LSB & \texttt{0x20bb} & \texttt{[31:0]} & r & \texttt{} & Accumulator for Sbit 31 to 0 of VFAT4 \\\hline
+    VFAT5\_MSB & \texttt{0x20bc} & \texttt{[31:0]} & r & \texttt{} & Accumulator for Sbit 63 to 32 of VFAT5 \\\hline
+    VFAT5\_LSB & \texttt{0x20bd} & \texttt{[31:0]} & r & \texttt{} & Accumulator for Sbit 31 to 0 of VFAT5 \\\hline
+    VFAT6\_MSB & \texttt{0x20be} & \texttt{[31:0]} & r & \texttt{} & Accumulator for Sbit 63 to 32 of VFAT6 \\\hline
+    VFAT6\_LSB & \texttt{0x20bf} & \texttt{[31:0]} & r & \texttt{} & Accumulator for Sbit 31 to 0 of VFAT6 \\\hline
+    VFAT7\_MSB & \texttt{0x20c0} & \texttt{[31:0]} & r & \texttt{} & Accumulator for Sbit 63 to 32 of VFAT7 \\\hline
+    VFAT7\_LSB & \texttt{0x20c1} & \texttt{[31:0]} & r & \texttt{} & Accumulator for Sbit 31 to 0 of VFAT7 \\\hline
+    VFAT8\_MSB & \texttt{0x20c2} & \texttt{[31:0]} & r & \texttt{} & Accumulator for Sbit 63 to 32 of VFAT8 \\\hline
+    VFAT8\_LSB & \texttt{0x20c3} & \texttt{[31:0]} & r & \texttt{} & Accumulator for Sbit 31 to 0 of VFAT8 \\\hline
+    VFAT9\_MSB & \texttt{0x20c4} & \texttt{[31:0]} & r & \texttt{} & Accumulator for Sbit 63 to 32 of VFAT9 \\\hline
+    VFAT9\_LSB & \texttt{0x20c5} & \texttt{[31:0]} & r & \texttt{} & Accumulator for Sbit 31 to 0 of VFAT9 \\\hline
+    VFAT10\_MSB & \texttt{0x20c6} & \texttt{[31:0]} & r & \texttt{} & Accumulator for Sbit 63 to 32 of VFAT10 \\\hline
+    VFAT10\_LSB & \texttt{0x20c7} & \texttt{[31:0]} & r & \texttt{} & Accumulator for Sbit 31 to 0 of VFAT10 \\\hline
+    VFAT11\_MSB & \texttt{0x20c8} & \texttt{[31:0]} & r & \texttt{} & Accumulator for Sbit 63 to 32 of VFAT11 \\\hline
+    VFAT11\_LSB & \texttt{0x20c9} & \texttt{[31:0]} & r & \texttt{} & Accumulator for Sbit 31 to 0 of VFAT11 \\\hline
+    \end{tabularx}
+    \vspace{5mm}
+
+
+    \noindent
+    \subsection*{\textcolor{parentcolor}{\textbf{FPGA.TRIG.CTRL}}}
+
+    \vspace{4mm}
+    \noindent
+    Controls and monitors various parameters of the S-bit deserialization and cluster building.
+    \noindent
+
+    \keepXColumns
+    \begin{tabularx}{\linewidth}{ | l | l | r | c | l | X | }
+    \hline
+    \textbf{Node} & \textbf{Adr} & \textbf{Bits} & \textbf{Perm} & \textbf{Def} & \textbf{Description} \\\hline
+    \nopagebreak
+    SBIT\_SOT\_INVALID\_BITSKIP & \texttt{0x20e2} & \texttt{[11:0]} & r & \texttt{} & 12 bit list of VFATs with a invalid bitskip counter for Start-of-frame pulses \\\hline
+    \end{tabularx}
+    \vspace{5mm}
+
+
+% END: ADDRESS_TABLE :: DO NOT EDIT
+
+\end{document}

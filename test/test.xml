@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- START: GLOBALS DO NOT EDIT -->
+<!DOCTYPE node [
+<!ENTITY NUM_VFATS_PER_OH "12">
+<!ENTITY VFAT_BITMASK  "0xfff">
+]>
+<!-- END: GLOBALS DO NOT EDIT -->
+
+<!--  The tags attribute is a free test attribute which meaning is defined by the uHAL user -->
+<node id="FPGA">
+    <!--Control module -->
+    <node id="CONTROL"  address="0x0000"
+          description="Implements various control and monitoring functions of the Optohybrid"
+          fw_is_module="true"
+          fw_module_file="test/test.vhd"
+          fw_user_clock_signal="clocks.clk40"
+          fw_bus_clock_signal="clocks.clk40"
+          fw_bus_reset_signal="reset"
+          fw_master_bus_signal="ipb_mosi_i"
+          fw_slave_bus_signal="ipb_miso_o"
+          fw_reg_addr_msb="5"
+          fw_reg_addr_lsb="0">
+
+        <node id="LOOPBACK" address="0x0" description="Loopback data register for testing read/write communication with the Optohybrid FPGA">
+            description="Loopback Test Register" fw_signal="loopback">
+            <node id="DATA" address="0x0" permission="rw"
+                  description="Write/Read Data Port"
+                  fw_signal="loopback"
+                  fw_default="0x01234567"/>
+        </node> <!--Loopback-->
+
+        <node id="RELEASE" address="0x1"
+              description="Optohybrid Firmware Release Date and Version">
+            <node id="DATE" address="0x0" permission="r"
+                  mask="0xffffffff"
+                  description="Release YYYY/MM/DD"
+                  fw_signal="(RELEASE_YEAR &amp; RELEASE_MONTH &amp; RELEASE_DAY)"/>
+            <node id="VERSION" address="0x1" description="Optohybrid Release Version (XX.YY.ZZ.AA)
+                                                          \\ XX indicates the firmware major version
+                                                          \\ YY indicates the firmware minor version
+                                                          \\ ZZ indicates the firmware patch
+                                                          \\ AA indicates the hardware generation (0C = GE1/1 v3C short, 1C = GE1/1 v3C long, 2A = GE2/1 v1)
+                                                          ">
+                <node id="MAJOR" address="0x0" permission="r"
+                      mask="0xff"
+                      description="Release semantic version major"
+                      fw_signal="(MAJOR_VERSION)"/>
+                <node id="MINOR" address="0x0" permission="r"
+                      mask="0xff00"
+                      description="Release semantic version minor"
+                      fw_signal="(MINOR_VERSION)"/>
+                <node id="BUILD" address="0x0" permission="r"
+                      mask="0xff0000"
+                      description="Release semantic version build"
+                      fw_signal="(RELEASE_VERSION)"/>
+                <node id="GENERATION" address="0x0" permission="r"
+                      mask="0xff000000"
+                      description="Release semantic version build"
+                      fw_signal="(RELEASE_HARDWARE)"/>
+            </node> <!--Version-->
+        </node> <!--Release-->
+
+        <node id="SEM" address="0x3" description = "Connects to Outputs of the FPGA's built-in single event upset monitoring system">
+            <node id="CNT_SEM_CRITICAL" address="0x0" permission="r"
+                  mask="0x0000ffff"
+                  description="Counts of critical single event upsets"
+                  fw_cnt_en_signal="sem_critical"
+                  fw_cnt_snap_signal="cnt_snap"
+                  fw_signal="cnt_sem_critical"/>
+            <node id="CNT_SEM_CORRECTION" address="0x1" permission="r"
+                  mask="0xffff0000"
+                  description="Counts of corrected single event upsets"
+                  fw_cnt_en_signal="sem_correction"
+                  fw_cnt_snap_signal="cnt_snap"
+                  fw_signal="cnt_sem_correction"/>
+        </node> <!--SEM-->
+
+        <node id="VFAT" address="0x5" description = "Controls the 12 VFAT reset outputs from the FPGA">
+            <node id="RESET" address="0x0" permission="rw"
+                  mask="0x00000fff"
+                  description="Mask of VFAT Reset Outputs; 1=reset 0=enable"
+                  fw_signal="vfat_reset(11 downto 0)"
+                  fw_default="0x0"/>
+        </node> <!--VFAT-->
+
+        <node id="TTC" address="0x8" description = "TTC Status and Control">
+            <node id="BX0_CNT_LOCAL" address="0x0" permission="r"
+                  mask="0x00ffffff"
+                  description="TTC BX0 Local Counter"
+                  fw_cnt_en_signal="bx0_local"
+                  fw_cnt_reset_signal="cnt_reset"
+                  fw_cnt_snap_signal="cnt_snap"
+                  fw_signal="cnt_bx0_lcl"/>
+            <node id="BX0_CNT_TTC" address="0x1" permission="r"
+                  mask="0x00ffffff"
+                  description="TTC BX0 Received Counter"
+                  fw_cnt_en_signal="ttc_i.bc0"
+                  fw_cnt_reset_signal="cnt_reset"
+                  fw_cnt_snap_signal="cnt_snap"
+                  fw_signal="cnt_bx0_rxd"/>
+            <node id="BXN_CNT_LOCAL" address="0x2" permission="r"
+                  description="TTC BXN Counter"
+                  mask="0xfff"
+                  fw_signal="ttc_bxn_counter"/>
+            <node id="BXN_SYNC_ERR" address="0x3" permission="r"
+                  mask="0x1000"
+                  description="BXN Synchronization Error; Local BXN and received BXN do not match"
+                  fw_signal="ttc_bxn_sync_err"/>
+            <node id="BX0_SYNC_ERR" address="0x4" permission="r"
+                  mask="0x2000"
+                  description="BX0 Synchronization Error"
+                  fw_signal="ttc_bx0_sync_err"/>
+            <node id="BXN_OFFSET" address="0x5" permission="rw"
+                  mask="0xfff0000"
+                  description="Local BXN counter offset (starting value at resync)"
+                  fw_signal="ttc_bxn_offset"
+                  fw_default="0x0"/>
+            <node id="L1A_CNT" address="0x6" permission="r"
+                  mask="0xffffff"
+                  description="L1A Received Counter"
+                  fw_cnt_en_signal="ttc_i.l1a"
+                  fw_cnt_reset_signal="cnt_reset"
+                  fw_cnt_snap_signal="cnt_snap"
+                  fw_signal="cnt_l1a"/>
+            <node id="BXN_SYNC_ERR_CNT" address="0x7" permission="r"
+                  mask="0x0000ffff"
+                  description="BXN Sync Error Counter"
+                  fw_cnt_en_signal="ttc_bxn_sync_err"
+                  fw_cnt_reset_signal="cnt_reset"
+                  fw_cnt_snap_signal="cnt_snap"
+                  fw_signal="cnt_bxn_sync_err"/>
+            <node id="BX0_SYNC_ERR_CNT" address="0x8" permission="r"
+                  mask="0xffff0000"
+                  description="BX0 Sync Error Counter"
+                  fw_cnt_en_signal="ttc_bx0_sync_err"
+                  fw_cnt_reset_signal="cnt_reset"
+                  fw_cnt_snap_signal="cnt_snap"
+                  fw_signal="cnt_bx0_sync_err"/>
+        </node> <!--TTC-->
+
+
+        <node id="SBITS" address="0x11" description = "S-bit and Cluster Packing Rate">
+            <node id="CLUSTER_RATE" address="0x0" permission="r"
+                  description="Trigger cluster rate measured in Hz"
+                  fw_signal="cluster_rate"/>
+        </node> <!--SBITS-->
+
+        <node id="HDMI" address="0x12" description = "HDMI Connector Control:
+                                                      \\ Mode=0: Each signal is a single VFAT. The VFAT of interest is chosen by SBIT_SEL
+                                                      \\ Mode=1: Each signal is the OR of three VFATs in an ieta row. The row of interest is configured by SBIT_SEL
+                                                      \\ Mode=2: Each signal is the OR of four VFATs in an iphi half column (e.g. 0-3, 4-7, 8-11, 12-15, 16-19, 20-23)">
+            <node id="SBIT_SEL0" address="0x0" permission="rw"
+                  description="HDMI Output 0 S-bit select"
+                  mask="0x1f"
+                  fw_signal="sbit_sel0"
+                  fw_default="0x0"/>
+
+            <node id="SBIT_SEL1" address="0x0" permission="rw"
+                  description="HDMI Output 1 S-bit select"
+                  mask="0x3e0"
+                  fw_signal="sbit_sel1"
+                  fw_default="0x0"/>
+
+            <node id="SBIT_SEL2" address="0x0" permission="rw"
+                  description="HDMI Output 2 S-bit select"
+                  mask="0x7c00"
+                  fw_signal="sbit_sel2"
+                  fw_default="0x0"/>
+
+            <node id="SBIT_SEL3" address="0x0" permission="rw"
+                  description="HDMI Output 3 S-bit select"
+                  mask="0xf8000"
+                  fw_signal="sbit_sel3"
+                  fw_default="0x0"/>
+
+            <node id="SBIT_SEL4" address="0x0" permission="rw"
+                  description="HDMI Output 4 S-bit select"
+                  mask="0x1f00000"
+                  fw_signal="sbit_sel4"
+                  fw_default="0x0"/>
+
+            <node id="SBIT_SEL5" address="0x0" permission="rw"
+                  description="HDMI Output 5 S-bit select"
+                  mask="0x3e000000"
+                  fw_signal="sbit_sel5"
+                  fw_default="0x0"/>
+
+            <node id="SBIT_SEL6" address="0x1" permission="rw"
+                  description="HDMI Output 6 S-bit select"
+                  mask="0x1f"
+                  fw_signal="sbit_sel6"
+                  fw_default="0x0"/>
+
+            <node id="SBIT_SEL7" address="0x1" permission="rw"
+                  description="HDMI Output 7 S-bit select"
+                  mask="0x3e0"
+                  fw_signal="sbit_sel7"
+                  fw_default="0x0"/>
+
+            <node id="SBIT_MODE0" address="0x1" permission="rw"
+                  description="HDMI Output 0 S-bit mode"
+                  mask="0xc00"
+                  fw_signal="sbit_mode0"
+                  fw_default="0x0"/>
+
+            <node id="SBIT_MODE1" address="0x1" permission="rw"
+                  description="HDMI Output 1 S-bit mode"
+                  mask="0x3000"
+                  fw_signal="sbit_mode1"
+                  fw_default="0x0"/>
+
+            <node id="SBIT_MODE2" address="0x1" permission="rw"
+                  description="HDMI Output 2 S-bit mode"
+                  mask="0xc000"
+                  fw_signal="sbit_mode2"
+                  fw_default="0x0"/>
+
+            <node id="SBIT_MODE3" address="0x1" permission="rw"
+                  description="HDMI Output 3 S-bit mode"
+                  mask="0x30000"
+                  fw_signal="sbit_mode3"
+                  fw_default="0x0"/>
+
+            <node id="SBIT_MODE4" address="0x1" permission="rw"
+                  description="HDMI Output 4 S-bit mode"
+                  mask="0xc0000"
+                  fw_signal="sbit_mode4"
+                  fw_default="0x0"/>
+
+            <node id="SBIT_MODE5" address="0x1" permission="rw"
+                  description="HDMI Output 5 S-bit mode"
+                  mask="0x300000"
+                  fw_signal="sbit_mode5"
+                  fw_default="0x0"/>
+
+            <node id="SBIT_MODE6" address="0x1" permission="rw"
+                  description="HDMI Output 6 S-bit mode"
+                  mask="0xc00000"
+                  fw_signal="sbit_mode6"
+                  fw_default="0x0"/>
+
+            <node id="SBIT_MODE7" address="0x1" permission="rw"
+                  description="HDMI Output 7 S-bit mode"
+                  mask="0x3000000"
+                  fw_signal="sbit_mode7"
+                  fw_default="0x0"/>
+        </node> <!--HDMI-->
+
+        <node id="CNT_SNAP" address="0x14" description = "Control the global counter snapshot">
+            <node id="PULSE" address="0x0" permission="w"
+                  description="Pulse to take a counter snapshot"
+                  mask="0x1"
+                  fw_write_pulse_signal="cnt_snap_pulse"/>
+            <node id="DISABLE" address="0x1" permission="rw"
+                  description="0=enable snapshots (counters freeze synchronously and need a snapshot to update)"
+                  mask="0x2"
+                  fw_default="1"
+                  fw_signal="cnt_snap_disable"/>
+        </node> <!--CNT_SNAP-->
+
+        <node id="DNA" address="0x17" description = "57 Bit FPGA-specific device identifier">
+            <node id="DNA_LSBS" address="0x0" permission="r"
+                  description = "Device DNA bits 31 downto 0"
+                  mask="0xffffffff"
+                  fw_signal="dna(31 downto 0)"/>
+            <node id="DNA_MSBS" address="0x1" permission="r"
+                  description = "Device DNA bits 56 downto 32"
+                  mask="0x01ffffff"
+                  fw_signal="dna(56 downto 32)"/>
+        </node> <!--DNA-->
+
+        <node id="UPTIME" address="0x19" description="Uptime in seconds" permission="r"
+              mask="0xfffff"
+              fw_signal="std_logic_vector(uptime)"/>
+
+        <node id="USR_ACCESS" address="0x20" description="Git hash read from USR_ACCESS field" permission="r"
+              mask="0xffffffff"
+              fw_signal="usr_access"/>
+
+        <node id="HOG" address="0x21" description = "">
+            <node id="GLOBAL_DATE" permission="r" address="0x0" description="HOG Global Date"    fw_signal="GLOBAL_DATE"/>
+            <node id="GLOBAL_TIME" permission="r" address="0x1" description="HOG Global Time"    fw_signal="GLOBAL_TIME"/>
+            <node id="GLOBAL_VER"  permission="r" address="0x2" description="HOG Global Version" fw_signal="GLOBAL_VER"/>
+            <node id="GLOBAL_SHA"  permission="r" address="0x3" description="HOG Global SHA"     fw_signal="GLOBAL_SHA"/>
+            <node id="TOP_SHA"     permission="r" address="0x4" description="HOG Top SHA"        fw_signal="TOP_SHA"/>
+            <node id="TOP_VER"     permission="r" address="0x5" description="HOG Top Version"    fw_signal="TOP_VER"/>
+            <node id="HOG_SHA"     permission="r" address="0x6" description="HOG SHA"            fw_signal="HOG_SHA"/>
+            <node id="HOG_VER"     permission="r" address="0x7" description="HOG Version"        fw_signal="HOG_VER"/>
+            <node id="OH_SHA"      permission="r" address="0x8" description="OH SHA"             fw_signal="OPTOHYBRID_SHA"/>
+            <node id="OH_VER"      permission="r" address="0x9" description="OH Version"         fw_signal="OPTOHYBRID_VER"/>
+            <node id="FLAVOUR"     permission="r" address="0xa" description="Flavor"             fw_signal="std_logic_vector(to_unsigned(FLAVOUR,32))"/>
+        </node> <!--HOG-->
+
+    </node> <!--CTRL-->
+
+</node> <!--FPGA-->

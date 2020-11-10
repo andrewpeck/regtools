@@ -1,0 +1,466 @@
+#+OPTIONS: toc:5
+#+OPTIONS: ^:nil
+
+# START: ADDRESS_TABLE_VERSION :: DO NOT EDIT
+# END: ADDRESS_TABLE_VERSION :: DO NOT EDIT
+
+# START: ADDRESS_TABLE :: DO NOT EDIT
+
+* Module FPGA.CONTROL 	 adr = ~0x0~
+
+Implements various control and monitoring functions of the Optohybrid
+
+*FPGA.CONTROL.LOOPBACK*
+
+Loopback data register for testing read/write communication with the Optohybrid FPGA
+
+|------------+------+---------+------+-----+----------------------------|
+| Node       | Adr  | Bits    | Perm | Def | Description                |
+|------------+------+---------+------+-----+----------------------------|
+|DATA | ~0x0~ | ~[31:0]~ | rw | ~0x1234567~ | Write/Read Data Port | 
+|------------+------+---------+-----+-----+----------------------------|
+
+*FPGA.CONTROL.RELEASE*
+
+Optohybrid Firmware Release Date and Version
+
+|------------+------+---------+------+-----+----------------------------|
+| Node       | Adr  | Bits    | Perm | Def | Description                |
+|------------+------+---------+------+-----+----------------------------|
+|DATE | ~0x1~ | ~[31:0]~ | r |  | Release YYYY/MM/DD | 
+|------------+------+---------+-----+-----+----------------------------|
+
+*FPGA.CONTROL.RELEASE.VERSION*
+
+Optohybrid Release Version (XX.YY.ZZ.AA)                                                           
+
+ XX indicates the firmware major version                                                           
+
+ YY indicates the firmware minor version                                                           
+
+ ZZ indicates the firmware patch                                                           
+
+ AA indicates the hardware generation (0C = GE1/1 v3C short, 1C = GE1/1 v3C long, 2A = GE2/1 v1)                                                           
+
+|------------+------+---------+------+-----+----------------------------|
+| Node       | Adr  | Bits    | Perm | Def | Description                |
+|------------+------+---------+------+-----+----------------------------|
+|MAJOR | ~0x2~ | ~[7:0]~ | r |  | Release semantic version major | 
+|------------+------+---------+-----+-----+----------------------------|
+|MINOR | ~0x2~ | ~[15:8]~ | r |  | Release semantic version minor | 
+|------------+------+---------+-----+-----+----------------------------|
+|BUILD | ~0x2~ | ~[23:16]~ | r |  | Release semantic version build | 
+|------------+------+---------+-----+-----+----------------------------|
+|GENERATION | ~0x2~ | ~[31:24]~ | r |  | Release semantic version build | 
+|------------+------+---------+-----+-----+----------------------------|
+
+*FPGA.CONTROL.SEM*
+
+Connects to Outputs of the FPGA's built-in single event upset monitoring system
+
+|------------+------+---------+------+-----+----------------------------|
+| Node       | Adr  | Bits    | Perm | Def | Description                |
+|------------+------+---------+------+-----+----------------------------|
+|CNT_SEM_CRITICAL | ~0x3~ | ~[15:0]~ | r |  | Counts of critical single event upsets | 
+|------------+------+---------+-----+-----+----------------------------|
+|CNT_SEM_CORRECTION | ~0x4~ | ~[31:16]~ | r |  | Counts of corrected single event upsets | 
+|------------+------+---------+-----+-----+----------------------------|
+
+*FPGA.CONTROL.VFAT*
+
+Controls the 12 VFAT reset outputs from the FPGA
+
+|------------+------+---------+------+-----+----------------------------|
+| Node       | Adr  | Bits    | Perm | Def | Description                |
+|------------+------+---------+------+-----+----------------------------|
+|RESET | ~0x5~ | ~[11:0]~ | rw | ~0x0~ | Mask of VFAT Reset Outputs; 1=reset 0=enable | 
+|------------+------+---------+-----+-----+----------------------------|
+
+*FPGA.CONTROL.TTC*
+
+TTC Status and Control
+
+|------------+------+---------+------+-----+----------------------------|
+| Node       | Adr  | Bits    | Perm | Def | Description                |
+|------------+------+---------+------+-----+----------------------------|
+|BX0_CNT_LOCAL | ~0x8~ | ~[23:0]~ | r |  | TTC BX0 Local Counter | 
+|------------+------+---------+-----+-----+----------------------------|
+|BX0_CNT_TTC | ~0x9~ | ~[23:0]~ | r |  | TTC BX0 Received Counter | 
+|------------+------+---------+-----+-----+----------------------------|
+|BXN_CNT_LOCAL | ~0xa~ | ~[11:0]~ | r |  | TTC BXN Counter | 
+|------------+------+---------+-----+-----+----------------------------|
+|BXN_SYNC_ERR | ~0xb~ | ~12~ | r |  | BXN Synchronization Error; Local BXN and received BXN do not match | 
+|------------+------+---------+-----+-----+----------------------------|
+|BX0_SYNC_ERR | ~0xc~ | ~13~ | r |  | BX0 Synchronization Error | 
+|------------+------+---------+-----+-----+----------------------------|
+|BXN_OFFSET | ~0xd~ | ~[27:16]~ | rw | ~0x0~ | Local BXN counter offset (starting value at resync) | 
+|------------+------+---------+-----+-----+----------------------------|
+|L1A_CNT | ~0xe~ | ~[23:0]~ | r |  | L1A Received Counter | 
+|------------+------+---------+-----+-----+----------------------------|
+|BXN_SYNC_ERR_CNT | ~0xf~ | ~[15:0]~ | r |  | BXN Sync Error Counter | 
+|------------+------+---------+-----+-----+----------------------------|
+|BX0_SYNC_ERR_CNT | ~0x10~ | ~[31:16]~ | r |  | BX0 Sync Error Counter | 
+|------------+------+---------+-----+-----+----------------------------|
+
+*FPGA.CONTROL.SBITS*
+
+S-bit and Cluster Packing Rate
+
+|------------+------+---------+------+-----+----------------------------|
+| Node       | Adr  | Bits    | Perm | Def | Description                |
+|------------+------+---------+------+-----+----------------------------|
+|CLUSTER_RATE | ~0x11~ | ~[31:0]~ | r |  | Trigger cluster rate measured in Hz | 
+|------------+------+---------+-----+-----+----------------------------|
+
+*FPGA.CONTROL.HDMI*
+
+HDMI Connector Control:                                                       
+
+ Mode=0: Each signal is a single VFAT. The VFAT of interest is chosen by SBIT_SEL                                                       
+
+ Mode=1: Each signal is the OR of three VFATs in an ieta row. The row of interest is configured by SBIT_SEL                                                       
+
+ Mode=2: Each signal is the OR of four VFATs in an iphi half column (e.g. 0-3, 4-7, 8-11, 12-15, 16-19, 20-23)
+
+|------------+------+---------+------+-----+----------------------------|
+| Node       | Adr  | Bits    | Perm | Def | Description                |
+|------------+------+---------+------+-----+----------------------------|
+|SBIT_SEL0 | ~0x12~ | ~[4:0]~ | rw | ~0x0~ | HDMI Output 0 S-bit select | 
+|------------+------+---------+-----+-----+----------------------------|
+|SBIT_SEL1 | ~0x12~ | ~[9:5]~ | rw | ~0x0~ | HDMI Output 1 S-bit select | 
+|------------+------+---------+-----+-----+----------------------------|
+|SBIT_SEL2 | ~0x12~ | ~[14:10]~ | rw | ~0x0~ | HDMI Output 2 S-bit select | 
+|------------+------+---------+-----+-----+----------------------------|
+|SBIT_SEL3 | ~0x12~ | ~[19:15]~ | rw | ~0x0~ | HDMI Output 3 S-bit select | 
+|------------+------+---------+-----+-----+----------------------------|
+|SBIT_SEL4 | ~0x12~ | ~[24:20]~ | rw | ~0x0~ | HDMI Output 4 S-bit select | 
+|------------+------+---------+-----+-----+----------------------------|
+|SBIT_SEL5 | ~0x12~ | ~[29:25]~ | rw | ~0x0~ | HDMI Output 5 S-bit select | 
+|------------+------+---------+-----+-----+----------------------------|
+|SBIT_SEL6 | ~0x13~ | ~[4:0]~ | rw | ~0x0~ | HDMI Output 6 S-bit select | 
+|------------+------+---------+-----+-----+----------------------------|
+|SBIT_SEL7 | ~0x13~ | ~[9:5]~ | rw | ~0x0~ | HDMI Output 7 S-bit select | 
+|------------+------+---------+-----+-----+----------------------------|
+|SBIT_MODE0 | ~0x13~ | ~[11:10]~ | rw | ~0x0~ | HDMI Output 0 S-bit mode | 
+|------------+------+---------+-----+-----+----------------------------|
+|SBIT_MODE1 | ~0x13~ | ~[13:12]~ | rw | ~0x0~ | HDMI Output 1 S-bit mode | 
+|------------+------+---------+-----+-----+----------------------------|
+|SBIT_MODE2 | ~0x13~ | ~[15:14]~ | rw | ~0x0~ | HDMI Output 2 S-bit mode | 
+|------------+------+---------+-----+-----+----------------------------|
+|SBIT_MODE3 | ~0x13~ | ~[17:16]~ | rw | ~0x0~ | HDMI Output 3 S-bit mode | 
+|------------+------+---------+-----+-----+----------------------------|
+|SBIT_MODE4 | ~0x13~ | ~[19:18]~ | rw | ~0x0~ | HDMI Output 4 S-bit mode | 
+|------------+------+---------+-----+-----+----------------------------|
+|SBIT_MODE5 | ~0x13~ | ~[21:20]~ | rw | ~0x0~ | HDMI Output 5 S-bit mode | 
+|------------+------+---------+-----+-----+----------------------------|
+|SBIT_MODE6 | ~0x13~ | ~[23:22]~ | rw | ~0x0~ | HDMI Output 6 S-bit mode | 
+|------------+------+---------+-----+-----+----------------------------|
+|SBIT_MODE7 | ~0x13~ | ~[25:24]~ | rw | ~0x0~ | HDMI Output 7 S-bit mode | 
+|------------+------+---------+-----+-----+----------------------------|
+
+*FPGA.CONTROL.CNT_SNAP*
+
+Control the global counter snapshot
+
+|------------+------+---------+------+-----+----------------------------|
+| Node       | Adr  | Bits    | Perm | Def | Description                |
+|------------+------+---------+------+-----+----------------------------|
+|PULSE | ~0x14~ | ~0~ | w | Pulse | Pulse to take a counter snapshot | 
+|------------+------+---------+-----+-----+----------------------------|
+|DISABLE | ~0x15~ | ~1~ | rw | ~0x1~ | 0=enable snapshots (counters freeze synchronously and need a snapshot to update) | 
+|------------+------+---------+-----+-----+----------------------------|
+
+*FPGA.CONTROL.DNA*
+
+57 Bit FPGA-specific device identifier
+
+|------------+------+---------+------+-----+----------------------------|
+| Node       | Adr  | Bits    | Perm | Def | Description                |
+|------------+------+---------+------+-----+----------------------------|
+|DNA_LSBS | ~0x17~ | ~[31:0]~ | r |  | Device DNA bits 31 downto 0 | 
+|------------+------+---------+-----+-----+----------------------------|
+|DNA_MSBS | ~0x18~ | ~[24:0]~ | r |  | Device DNA bits 56 downto 32 | 
+|------------+------+---------+-----+-----+----------------------------|
+
+*FPGA.CONTROL*
+
+Implements various control and monitoring functions of the Optohybrid
+
+|------------+------+---------+------+-----+----------------------------|
+| Node       | Adr  | Bits    | Perm | Def | Description                |
+|------------+------+---------+------+-----+----------------------------|
+|UPTIME | ~0x19~ | ~[19:0]~ | r |  | Uptime in seconds | 
+|------------+------+---------+-----+-----+----------------------------|
+|USR_ACCESS | ~0x20~ | ~[31:0]~ | r |  | Git hash read from USR_ACCESS field | 
+|------------+------+---------+-----+-----+----------------------------|
+
+*FPGA.CONTROL.HOG*
+
+|------------+------+---------+------+-----+----------------------------|
+| Node       | Adr  | Bits    | Perm | Def | Description                |
+|------------+------+---------+------+-----+----------------------------|
+|GLOBAL_DATE | ~0x21~ | ~[31:0]~ | r |  | HOG Global Date | 
+|------------+------+---------+-----+-----+----------------------------|
+|GLOBAL_TIME | ~0x22~ | ~[31:0]~ | r |  | HOG Global Time | 
+|------------+------+---------+-----+-----+----------------------------|
+|GLOBAL_VER | ~0x23~ | ~[31:0]~ | r |  | HOG Global Version | 
+|------------+------+---------+-----+-----+----------------------------|
+|GLOBAL_SHA | ~0x24~ | ~[31:0]~ | r |  | HOG Global SHA | 
+|------------+------+---------+-----+-----+----------------------------|
+|TOP_SHA | ~0x25~ | ~[31:0]~ | r |  | HOG Top SHA | 
+|------------+------+---------+-----+-----+----------------------------|
+|TOP_VER | ~0x26~ | ~[31:0]~ | r |  | HOG Top Version | 
+|------------+------+---------+-----+-----+----------------------------|
+|HOG_SHA | ~0x27~ | ~[31:0]~ | r |  | HOG SHA | 
+|------------+------+---------+-----+-----+----------------------------|
+|HOG_VER | ~0x28~ | ~[31:0]~ | r |  | HOG Version | 
+|------------+------+---------+-----+-----+----------------------------|
+|OH_SHA | ~0x29~ | ~[31:0]~ | r |  | OH SHA | 
+|------------+------+---------+-----+-----+----------------------------|
+|OH_VER | ~0x2a~ | ~[31:0]~ | r |  | OH Version | 
+|------------+------+---------+-----+-----+----------------------------|
+|FLAVOUR | ~0x2b~ | ~[31:0]~ | r |  | Flavor | 
+|------------+------+---------+-----+-----+----------------------------|
+
+
+* Module FPGA.ADC 	 adr = ~0x1000~
+
+Connects to the Virtex-6 XADC and allows for reading of temperature, VCCINT, and VCCAUX voltages
+
+*FPGA.ADC.CTRL*
+
+|------------+------+---------+------+-----+----------------------------|
+| Node       | Adr  | Bits    | Perm | Def | Description                |
+|------------+------+---------+------+-----+----------------------------|
+|OVERTEMP | ~0x1000~ | ~0~ | r |  | FPGA over temperature | 
+|------------+------+---------+-----+-----+----------------------------|
+|VCCAUX_ALARM | ~0x1000~ | ~1~ | r |  | FPGA VCCAUX Alarm | 
+|------------+------+---------+-----+-----+----------------------------|
+|VCCINT_ALARM | ~0x1000~ | ~2~ | r |  | FPGA VCCINT Alarm | 
+|------------+------+---------+-----+-----+----------------------------|
+|ADR_IN | ~0x1000~ | ~[9:3]~ | rw | ~0x0~ | XADC Addr In | 
+|------------+------+---------+-----+-----+----------------------------|
+|ENABLE | ~0x1000~ | ~10~ | rw | ~0x1~ | XADC Data In | 
+|------------+------+---------+-----+-----+----------------------------|
+|CNT_OVERTEMP | ~0x1000~ | ~[17:11]~ | r |  | Overtemperature counter | 
+|------------+------+---------+-----+-----+----------------------------|
+|CNT_VCCAUX_ALARM | ~0x1000~ | ~[24:18]~ | r |  | VCCAUX Alarm Counter | 
+|------------+------+---------+-----+-----+----------------------------|
+|CNT_VCCINT_ALARM | ~0x1000~ | ~[31:25]~ | r |  | VCCINT Alarm Counter | 
+|------------+------+---------+-----+-----+----------------------------|
+|DATA_IN | ~0x1001~ | ~[15:0]~ | rw | ~0x0~ | XADC Data In | 
+|------------+------+---------+-----+-----+----------------------------|
+|DATA_OUT | ~0x1001~ | ~[31:16]~ | r |  | XADC Data Out | 
+|------------+------+---------+-----+-----+----------------------------|
+|RESET | ~0x1002~ | ~0~ | w | Pulse | XADC Reset | 
+|------------+------+---------+-----+-----+----------------------------|
+|WR_EN | ~0x1003~ | ~0~ | w | Pulse | XADC Write Enable | 
+|------------+------+---------+-----+-----+----------------------------|
+
+
+* Module FPGA.TRIG 	 adr = ~0x2000~
+
+Connects to the trigger control module
+
+*FPGA.TRIG.CTRL*
+
+Controls and monitors various parameters of the S-bit deserialization and cluster building.
+
+|------------+------+---------+------+-----+----------------------------|
+| Node       | Adr  | Bits    | Perm | Def | Description                |
+|------------+------+---------+------+-----+----------------------------|
+|VFAT_MASK | ~0x2000~ | ~[11:0]~ | rw | ~0x0~ | 12 bit mask of VFATs (1=off) | 
+|------------+------+---------+-----+-----+----------------------------|
+|SBIT_DEADTIME | ~0x2000~ | ~[27:24]~ | rw | ~0x7~ | Set programmable oneshot deadtime which applies to retriggers on individual VFAT channels | 
+|------------+------+---------+-----+-----+----------------------------|
+|ACTIVE_VFATS | ~0x2001~ | ~[11:0]~ | r |  | 12 bit list of VFATs with hits in this BX | 
+|------------+------+---------+-----+-----+----------------------------|
+|CNT_OVERFLOW | ~0x2002~ | ~[15:0]~ | r |  | Overflow Counter (more than 8 clusters in a bx) | 
+|------------+------+---------+-----+-----+----------------------------|
+|ALIGNED_COUNT_TO_READY | ~0x2002~ | ~[27:16]~ | rw | ~0x1FF~ | Number of link consecutive good frames required before the transmission unit is marked as good and S-bits can be produced | 
+|------------+------+---------+-----+-----+----------------------------|
+|SBIT_SOT_READY | ~0x2003~ | ~[11:0]~ | r |  | 12 bit list of VFATs with stable Start-of-frame pulses (in sync for a number of clock cycles) | 
+|------------+------+---------+-----+-----+----------------------------|
+|SBIT_SOT_UNSTABLE | ~0x2004~ | ~[11:0]~ | r |  | 12 bit list of VFATs with unstable Start-of-frame pulses (became misaligned after already achieving lock) | 
+|------------+------+---------+-----+-----+----------------------------|
+
+*FPGA.TRIG.CTRL.SBITS_MUX*
+
+Multiplexed copy of Sbits from a selected VFAT
+
+|------------+------+---------+------+-----+----------------------------|
+| Node       | Adr  | Bits    | Perm | Def | Description                |
+|------------+------+---------+------+-----+----------------------------|
+|SBIT_MUX_SEL | ~0x200e~ | ~[8:4]~ | rw | ~0x10~ | Select a VFAT which will connect to the S-bit multiplexer | 
+|------------+------+---------+-----+-----+----------------------------|
+|SBITS_MUX_LSB | ~0x200f~ | ~[31:0]~ | r |  | Multiplexed S-bits 31 to 0 | 
+|------------+------+---------+-----+-----+----------------------------|
+|SBITS_MUX_MSB | ~0x2010~ | ~[31:0]~ | r |  | Multiplexed S-bits 63 to 32 | 
+|------------+------+---------+-----+-----+----------------------------|
+
+*FPGA.TRIG.CNT*
+
+S-BIT Counters 
+
+  Set CNT_PERSIST to 1 to accumulate. Otherwise the counters will automatically reset after a programmable time (default is 1 second). By default this time is 1 second, making these counters a rate counter in Hertz
+
+|------------+------+---------+------+-----+----------------------------|
+| Node       | Adr  | Bits    | Perm | Def | Description                |
+|------------+------+---------+------+-----+----------------------------|
+|VFAT0_SBITS | ~0x2017~ | ~[31:0]~ | r |  | VFAT 0 Counter | 
+|------------+------+---------+-----+-----+----------------------------|
+|VFAT1_SBITS | ~0x2018~ | ~[31:0]~ | r |  | VFAT 1 Counter | 
+|------------+------+---------+-----+-----+----------------------------|
+|VFAT2_SBITS | ~0x2019~ | ~[31:0]~ | r |  | VFAT 2 Counter | 
+|------------+------+---------+-----+-----+----------------------------|
+|VFAT3_SBITS | ~0x201a~ | ~[31:0]~ | r |  | VFAT 3 Counter | 
+|------------+------+---------+-----+-----+----------------------------|
+|VFAT4_SBITS | ~0x201b~ | ~[31:0]~ | r |  | VFAT 4 Counter | 
+|------------+------+---------+-----+-----+----------------------------|
+|VFAT5_SBITS | ~0x201c~ | ~[31:0]~ | r |  | VFAT 5 Counter | 
+|------------+------+---------+-----+-----+----------------------------|
+|VFAT6_SBITS | ~0x201d~ | ~[31:0]~ | r |  | VFAT 6 Counter | 
+|------------+------+---------+-----+-----+----------------------------|
+|VFAT7_SBITS | ~0x201e~ | ~[31:0]~ | r |  | VFAT 7 Counter | 
+|------------+------+---------+-----+-----+----------------------------|
+|VFAT8_SBITS | ~0x201f~ | ~[31:0]~ | r |  | VFAT 8 Counter | 
+|------------+------+---------+-----+-----+----------------------------|
+|VFAT9_SBITS | ~0x2020~ | ~[31:0]~ | r |  | VFAT 9 Counter | 
+|------------+------+---------+-----+-----+----------------------------|
+|VFAT10_SBITS | ~0x2021~ | ~[31:0]~ | r |  | VFAT 10 Counter | 
+|------------+------+---------+-----+-----+----------------------------|
+|VFAT11_SBITS | ~0x2022~ | ~[31:0]~ | r |  | VFAT 11 Counter | 
+|------------+------+---------+-----+-----+----------------------------|
+|RESET | ~0x202f~ | ~0~ | w | Pulse | Reset S-bit counters | 
+|------------+------+---------+-----+-----+----------------------------|
+|SBIT_CNT_PERSIST | ~0x2030~ | ~0~ | rw | ~0x0~ | 1=counters will persist until manually reset; |
+|            |      |         |     |     |                                  0=counters will automatically reset at CNT_TIME | 
+|------------+------+---------+-----+-----+----------------------------|
+|SBIT_CNT_TIME_MAX | ~0x2031~ | ~[31:0]~ | rw | ~0x2638E98~ | Number of BX that the VFAT S-bit counters will count to before automatically resetting to zero | 
+|------------+------+---------+-----+-----+----------------------------|
+|CLUSTER_COUNT | ~0x2032~ | ~[31:0]~ | r |  | VFAT Cluster Counter (chamber) | 
+|------------+------+---------+-----+-----+----------------------------|
+|SBITS_OVER_64x0 | ~0x2036~ | ~[15:0]~ | r |  | More than 64 * 0 Sbits in a bx Counter | 
+|------------+------+---------+-----+-----+----------------------------|
+|SBITS_OVER_64x1 | ~0x2037~ | ~[15:0]~ | r |  | More than 64 * 1 Sbits in a bx Counter | 
+|------------+------+---------+-----+-----+----------------------------|
+|SBITS_OVER_64x2 | ~0x2038~ | ~[15:0]~ | r |  | More than 64 * 2 Sbits in a bx Counter | 
+|------------+------+---------+-----+-----+----------------------------|
+|SBITS_OVER_64x3 | ~0x2039~ | ~[15:0]~ | r |  | More than 64 * 3 Sbits in a bx Counter | 
+|------------+------+---------+-----+-----+----------------------------|
+|SBITS_OVER_64x4 | ~0x203a~ | ~[15:0]~ | r |  | More than 64 * 4 Sbits in a bx Counter | 
+|------------+------+---------+-----+-----+----------------------------|
+|SBITS_OVER_64x5 | ~0x203b~ | ~[15:0]~ | r |  | More than 64 * 5 Sbits in a bx Counter | 
+|------------+------+---------+-----+-----+----------------------------|
+|SBITS_OVER_64x6 | ~0x203c~ | ~[15:0]~ | r |  | More than 64 * 6 Sbits in a bx Counter | 
+|------------+------+---------+-----+-----+----------------------------|
+|SBITS_OVER_64x7 | ~0x203d~ | ~[15:0]~ | r |  | More than 64 * 7 Sbits in a bx Counter | 
+|------------+------+---------+-----+-----+----------------------------|
+|SBITS_OVER_64x8 | ~0x203e~ | ~[15:0]~ | r |  | More than 64 * 8 Sbits in a bx Counter | 
+|------------+------+---------+-----+-----+----------------------------|
+|SBITS_OVER_64x9 | ~0x203f~ | ~[15:0]~ | r |  | More than 64 * 9 Sbits in a bx Counter | 
+|------------+------+---------+-----+-----+----------------------------|
+|SBITS_OVER_64x10 | ~0x2040~ | ~[15:0]~ | r |  | More than 64 * 10 Sbits in a bx Counter | 
+|------------+------+---------+-----+-----+----------------------------|
+|SBITS_OVER_64x11 | ~0x2041~ | ~[15:0]~ | r |  | More than 64 * 11 Sbits in a bx Counter | 
+|------------+------+---------+-----+-----+----------------------------|
+
+*FPGA.TRIG.SBIT_MONITOR*
+
+sbit monitor module which shows the first valid sbit clusters after a reset on the selected link
+
+|------------+------+---------+------+-----+----------------------------|
+| Node       | Adr  | Bits    | Perm | Def | Description                |
+|------------+------+---------+------+-----+----------------------------|
+|RESET | ~0x2090~ | ~[31:0]~ | w | Pulse | Reset the sbit monitor module and re-arm for triggering | 
+|------------+------+---------+-----+-----+----------------------------|
+|CLUSTER0 | ~0x2091~ | ~[15:0]~ | r |  | Last cluster 0 | 
+|------------+------+---------+-----+-----+----------------------------|
+|CLUSTER1 | ~0x2092~ | ~[15:0]~ | r |  | Last cluster 1 | 
+|------------+------+---------+-----+-----+----------------------------|
+|CLUSTER2 | ~0x2093~ | ~[15:0]~ | r |  | Last cluster 2 | 
+|------------+------+---------+-----+-----+----------------------------|
+|CLUSTER3 | ~0x2094~ | ~[15:0]~ | r |  | Last cluster 3 | 
+|------------+------+---------+-----+-----+----------------------------|
+|CLUSTER4 | ~0x2095~ | ~[15:0]~ | r |  | Last cluster 4 | 
+|------------+------+---------+-----+-----+----------------------------|
+|CLUSTER5 | ~0x2096~ | ~[15:0]~ | r |  | Last cluster 5 | 
+|------------+------+---------+-----+-----+----------------------------|
+|CLUSTER6 | ~0x2097~ | ~[15:0]~ | r |  | Last cluster 6 | 
+|------------+------+---------+-----+-----+----------------------------|
+|CLUSTER7 | ~0x2098~ | ~[15:0]~ | r |  | Last cluster 7 | 
+|------------+------+---------+-----+-----+----------------------------|
+|L1A_DELAY | ~0x20a0~ | ~[31:0]~ | r |  | Number of BX between this sbit and the subsequent L1A | 
+|------------+------+---------+-----+-----+----------------------------|
+
+*FPGA.TRIG.SBIT_HITMAP*
+
+The Sbit hitmap module accumulates all incoming Sbits during a period of time
+
+|------------+------+---------+------+-----+----------------------------|
+| Node       | Adr  | Bits    | Perm | Def | Description                |
+|------------+------+---------+------+-----+----------------------------|
+|RESET | ~0x20b0~ | ~[31:0]~ | w | Pulse | Reset the accumulation registers | 
+|------------+------+---------+-----+-----+----------------------------|
+|ACQUIRE | ~0x20b1~ | ~0~ | rw | ~0x0~ | Sbits are accumulated as long as this flag is set | 
+|------------+------+---------+-----+-----+----------------------------|
+|VFAT0_MSB | ~0x20b2~ | ~[31:0]~ | r |  | Accumulator for Sbit 63 to 32 of VFAT0 | 
+|------------+------+---------+-----+-----+----------------------------|
+|VFAT0_LSB | ~0x20b3~ | ~[31:0]~ | r |  | Accumulator for Sbit 31 to 0 of VFAT0 | 
+|------------+------+---------+-----+-----+----------------------------|
+|VFAT1_MSB | ~0x20b4~ | ~[31:0]~ | r |  | Accumulator for Sbit 63 to 32 of VFAT1 | 
+|------------+------+---------+-----+-----+----------------------------|
+|VFAT1_LSB | ~0x20b5~ | ~[31:0]~ | r |  | Accumulator for Sbit 31 to 0 of VFAT1 | 
+|------------+------+---------+-----+-----+----------------------------|
+|VFAT2_MSB | ~0x20b6~ | ~[31:0]~ | r |  | Accumulator for Sbit 63 to 32 of VFAT2 | 
+|------------+------+---------+-----+-----+----------------------------|
+|VFAT2_LSB | ~0x20b7~ | ~[31:0]~ | r |  | Accumulator for Sbit 31 to 0 of VFAT2 | 
+|------------+------+---------+-----+-----+----------------------------|
+|VFAT3_MSB | ~0x20b8~ | ~[31:0]~ | r |  | Accumulator for Sbit 63 to 32 of VFAT3 | 
+|------------+------+---------+-----+-----+----------------------------|
+|VFAT3_LSB | ~0x20b9~ | ~[31:0]~ | r |  | Accumulator for Sbit 31 to 0 of VFAT3 | 
+|------------+------+---------+-----+-----+----------------------------|
+|VFAT4_MSB | ~0x20ba~ | ~[31:0]~ | r |  | Accumulator for Sbit 63 to 32 of VFAT4 | 
+|------------+------+---------+-----+-----+----------------------------|
+|VFAT4_LSB | ~0x20bb~ | ~[31:0]~ | r |  | Accumulator for Sbit 31 to 0 of VFAT4 | 
+|------------+------+---------+-----+-----+----------------------------|
+|VFAT5_MSB | ~0x20bc~ | ~[31:0]~ | r |  | Accumulator for Sbit 63 to 32 of VFAT5 | 
+|------------+------+---------+-----+-----+----------------------------|
+|VFAT5_LSB | ~0x20bd~ | ~[31:0]~ | r |  | Accumulator for Sbit 31 to 0 of VFAT5 | 
+|------------+------+---------+-----+-----+----------------------------|
+|VFAT6_MSB | ~0x20be~ | ~[31:0]~ | r |  | Accumulator for Sbit 63 to 32 of VFAT6 | 
+|------------+------+---------+-----+-----+----------------------------|
+|VFAT6_LSB | ~0x20bf~ | ~[31:0]~ | r |  | Accumulator for Sbit 31 to 0 of VFAT6 | 
+|------------+------+---------+-----+-----+----------------------------|
+|VFAT7_MSB | ~0x20c0~ | ~[31:0]~ | r |  | Accumulator for Sbit 63 to 32 of VFAT7 | 
+|------------+------+---------+-----+-----+----------------------------|
+|VFAT7_LSB | ~0x20c1~ | ~[31:0]~ | r |  | Accumulator for Sbit 31 to 0 of VFAT7 | 
+|------------+------+---------+-----+-----+----------------------------|
+|VFAT8_MSB | ~0x20c2~ | ~[31:0]~ | r |  | Accumulator for Sbit 63 to 32 of VFAT8 | 
+|------------+------+---------+-----+-----+----------------------------|
+|VFAT8_LSB | ~0x20c3~ | ~[31:0]~ | r |  | Accumulator for Sbit 31 to 0 of VFAT8 | 
+|------------+------+---------+-----+-----+----------------------------|
+|VFAT9_MSB | ~0x20c4~ | ~[31:0]~ | r |  | Accumulator for Sbit 63 to 32 of VFAT9 | 
+|------------+------+---------+-----+-----+----------------------------|
+|VFAT9_LSB | ~0x20c5~ | ~[31:0]~ | r |  | Accumulator for Sbit 31 to 0 of VFAT9 | 
+|------------+------+---------+-----+-----+----------------------------|
+|VFAT10_MSB | ~0x20c6~ | ~[31:0]~ | r |  | Accumulator for Sbit 63 to 32 of VFAT10 | 
+|------------+------+---------+-----+-----+----------------------------|
+|VFAT10_LSB | ~0x20c7~ | ~[31:0]~ | r |  | Accumulator for Sbit 31 to 0 of VFAT10 | 
+|------------+------+---------+-----+-----+----------------------------|
+|VFAT11_MSB | ~0x20c8~ | ~[31:0]~ | r |  | Accumulator for Sbit 63 to 32 of VFAT11 | 
+|------------+------+---------+-----+-----+----------------------------|
+|VFAT11_LSB | ~0x20c9~ | ~[31:0]~ | r |  | Accumulator for Sbit 31 to 0 of VFAT11 | 
+|------------+------+---------+-----+-----+----------------------------|
+
+*FPGA.TRIG.CTRL*
+
+Controls and monitors various parameters of the S-bit deserialization and cluster building.
+
+|------------+------+---------+------+-----+----------------------------|
+| Node       | Adr  | Bits    | Perm | Def | Description                |
+|------------+------+---------+------+-----+----------------------------|
+|SBIT_SOT_INVALID_BITSKIP | ~0x20e2~ | ~[11:0]~ | r |  | 12 bit list of VFATs with a invalid bitskip counter for Start-of-frame pulses | 
+|------------+------+---------+-----+-----+----------------------------|
+
+# END: ADDRESS_TABLE :: DO NOT EDIT
