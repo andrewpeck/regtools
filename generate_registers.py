@@ -891,29 +891,30 @@ def update_module_file(module):
     shutil.copy (module.file_name, tempname)
     f = io.open (tempname, "w", newline='')
 
-    signalSectionFound = False
-    signalSectionDone = False
-    slaveSectionFound = False
-    slaveSectionDone = False
+    signal_section_found = False
+    signal_section_done = False
+    slave_section_found = False
+    slave_section_done = False
     registersLibraryFound = False
     for line in lines:
-        line = unicode(line)
+        if sys.version_info[0] < 3:
+            line = unicode(line)
         if line.startswith('use work.registers.all;'):
             registersLibraryFound = True
 
         # if we're outside of business of writing the special sections, then just repeat the lines we read from the original file
-        if (not signalSectionFound or signalSectionDone) and (not slaveSectionFound or slaveSectionDone):
+        if (not signal_section_found or signal_section_done) and (not slave_section_found or slave_section_done):
             f.write(line)
-        elif (signalSectionFound and not signalSectionDone and VHDL_REG_SIGNAL_MARKER_END in line):
-            signalSectionDone = True
+        elif (signal_section_found and not signal_section_done and VHDL_REG_SIGNAL_MARKER_END in line):
+            signal_section_done = True
             f.write(line)
-        elif (slaveSectionFound and not slaveSectionDone and VHDL_REG_SLAVE_MARKER_END in line):
-            slaveSectionDone = True
+        elif (slave_section_found and not slave_section_done and VHDL_REG_SLAVE_MARKER_END in line):
+            slave_section_done = True
             f.write(line)
 
         # signal section
         if VHDL_REG_SIGNAL_MARKER_START in line:
-            signalSectionFound = True
+            signal_section_found = True
             signalDeclaration         = "    signal regs_read_arr        : t_std32_array(<num_regs> - 1 downto 0) := (others => (others => '0'));\n"\
                                         "    signal regs_write_arr       : t_std32_array(<num_regs> - 1 downto 0) := (others => (others => '0'));\n"\
                                         "    signal regs_addresses       : t_std32_array(<num_regs> - 1 downto 0) := (others => (others => '0'));\n"\
@@ -945,7 +946,7 @@ def update_module_file(module):
 
         # slave section
         if VHDL_REG_SLAVE_MARKER_START in line:
-            slaveSectionFound = True
+            slave_section_found = True
             slaveDeclaration =  '    ipbus_slave_inst : entity work.ipbus_slave_tmr\n'\
                                 '        generic map(\n'\
                                 '           g_ENABLE_TMR           => %s,\n' % ('EN_TMR_IPB_SLAVE_'     + module.get_vhdl_name()) + \
@@ -992,65 +993,67 @@ def update_module_file(module):
             # connect read signals
             f.write('    -- Connect read signals\n')
             for reg in module.regs:
-                isSingleBit = reg.msb == reg.lsb
+                is_single_bit = reg.msb == reg.lsb
                 if 'r' in reg.permission:
-                    f.write('    regs_read_arr(%d)(%s) <= %s;\n' % (uniqueAddresses.index(reg.address), VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_BIT' if isSingleBit else VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_MSB' + ' downto ' + VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_LSB', reg.signal))
+                    f.write('    regs_read_arr(%d)(%s) <= %s;\n' % (uniqueAddresses.index(reg.address), VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_BIT' if is_single_bit else VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_MSB' + ' downto ' + VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_LSB', reg.signal))
 
             f.write('\n')
 
             # connect write signals
             f.write('    -- Connect write signals\n')
             for reg in module.regs:
-                isSingleBit = reg.msb == reg.lsb
+                is_single_bit = reg.msb == reg.lsb
                 if 'w' in reg.permission and reg.signal is not None:
-                    f.write('    %s <= regs_write_arr(%d)(%s);\n' % (reg.signal, uniqueAddresses.index(reg.address), VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_BIT' if isSingleBit else VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_MSB' + ' downto ' + VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_LSB'))
+                    f.write('    %s <= regs_write_arr(%d)(%s);\n' % (reg.signal, uniqueAddresses.index(reg.address), VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_BIT' if is_single_bit else VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_MSB' + ' downto ' + VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_LSB'))
 
             f.write('\n')
 
+            def write_pulse_error (f, reg_type, address, name):
+                f.write(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! \n")
+                f.write(" !!! ERROR: register #" + address + " in module "
+                        + name + " is used for multiple + " + reg_type +
+                        " pulses (there can only be one " + reg_type +
+                        " per register address)\n")
+                f.write(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! \n")
+
             # connect write pulse signals
-            writePulseAddresses = []
-            duplicateWritePulseError = False
+            write_pulse_addresses = []
+            duplicate_write_pulse_error = False
             f.write('    -- Connect write pulse signals\n')
             for reg in module.regs:
                 if 'w' in reg.permission and reg.write_pulse_signal is not None:
-                    if uniqueAddresses.index(reg.address) in writePulseAddresses:
-                        duplicateWritePulseError = True
-                        f.write(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! \n")
-                        f.write(" !!! ERROR: register #" + str(uniqueAddresses.index(reg.address)) + " in module " + module.name + " is used for multiple write pulses (there can only be one write pulse per register address)\n")
-                        f.write(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! \n")
-                    writePulseAddresses.append(uniqueAddresses.index(reg.address))
+                    if uniqueAddresses.index(reg.address) in write_pulse_addresses:
+                        duplicate_write_pulse_error = True
+                        write_pulse_error(f, "write pulse", str(uniqueAddresses.index(reg.address)), module.name)
+                    write_pulse_addresses.append(uniqueAddresses.index(reg.address))
                     f.write('    %s <= regs_write_pulse_arr(%d);\n' % (reg.write_pulse_signal, uniqueAddresses.index(reg.address)))
 
             f.write('\n')
 
             # connect write done signals
-            writeDoneAddresses = []
-            duplicateWriteDoneError = False
+            write_done_addresses = []
+            duplicate_write_done_error = False
             f.write('    -- Connect write done signals\n')
             for reg in module.regs:
                 if 'w' in reg.permission and reg.write_done_signal is not None:
-                    if uniqueAddresses.index(reg.address) in writeDoneAddresses:
-                        duplicateWriteDoneError = True
-                        f.write(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! \n")
-                        f.write(" !!! ERROR: register #" + str(uniqueAddresses.index(reg.address)) + " in module " + module.name + " is used for multiple write done signals (there can only be one write done signal per register address)\n")
-                        f.write(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! \n")
-                    writeDoneAddresses.append(uniqueAddresses.index(reg.address))
+                    if uniqueAddresses.index(reg.address) in write_done_addresses:
+                        duplicate_write_done_error = True
+                        write_pulse_error(f, "write done", str(uniqueAddresses.index(reg.address)), module.name)
+                    write_done_addresses.append(uniqueAddresses.index(reg.address))
                     f.write('    regs_write_done_arr(%d) <= %s;\n' % (uniqueAddresses.index(reg.address), reg.write_done_signal))
 
             f.write('\n')
 
             # connect read pulse signals
-            readPulseAddresses = []
-            duplicateReadPulseError = False
+            read_pulse_addresses = []
+            duplicate_read_pulse_error = False
             f.write('    -- Connect read pulse signals\n')
             for reg in module.regs:
                 if 'r' in reg.permission and reg.read_pulse_signal is not None:
-                    if uniqueAddresses.index(reg.address) in readPulseAddresses:
-                        duplicateReadPulseError = True
-                        f.write(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! \n")
-                        f.write(" !!! ERROR: register #" + str(uniqueAddresses.index(reg.address)) + " in module " + module.name + " is used for multiple read pulses (there can only be one read pulse per register address)\n")
-                        f.write(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! \n")
-                    readPulseAddresses.append(uniqueAddresses.index(reg.address))
+                    if uniqueAddresses.index(reg.address) in read_pulse_addresses:
+                        duplicate_read_pulse_error = True
+                        write_pulse_error(f, "read pulse", str(uniqueAddresses.index(reg.address)), module.name)
+                    read_pulse_addresses.append(uniqueAddresses.index(reg.address))
                     f.write('    %s <= regs_read_pulse_arr(%d);\n' % (reg.read_pulse_signal, uniqueAddresses.index(reg.address)))
 
             f.write('\n')
@@ -1123,37 +1126,55 @@ def update_module_file(module):
 
             # connect read ready signals
             readReadyAddresses = []
-            duplicateReadReadyError = False
+            duplicate_read_ready_error = False
             f.write('    -- Connect read ready signals\n')
             for reg in module.regs:
                 if 'r' in reg.permission and reg.read_ready_signal is not None:
                     if uniqueAddresses.index(reg.address) in readReadyAddresses:
-                        duplicateReadReadyError = True
+                        duplicate_read_ready_error = True
                         f.write(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! \n")
-                        f.write(" !!! ERROR: register #" + str(uniqueAddresses.index(reg.address)) + " in module " + module.name + " is used for multiple read ready signals (there can only be one read ready signal per register address)\n")
+                        f.write(" !!! ERROR: register #" + str(uniqueAddresses.index(reg.address))
+                                + " in module " + module.name +
+                                " is used for multiple read ready signals \
+                                (there can only be one read ready signal per register address)\n")
                         f.write(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! \n")
                     readReadyAddresses.append(uniqueAddresses.index(reg.address))
-                    f.write('    regs_read_ready_arr(%d) <= %s;\n' % (uniqueAddresses.index(reg.address), reg.read_ready_signal))
+                    f.write('    regs_read_ready_arr(%d) <= %s;\n' % \
+                            (uniqueAddresses.index(reg.address), reg.read_ready_signal))
 
             f.write('\n')
 
             # Defaults
             f.write('    -- Defaults\n')
-            writableRegAddresses = []
+            writable_reg_addresses = []
+
             for reg in module.regs:
-                isSingleBit = reg.msb == reg.lsb
+
+                is_single_bit = reg.msb == reg.lsb
+
                 if reg.default is not None:
-                    if not uniqueAddresses.index(reg.address) in writableRegAddresses:
-                        writableRegAddresses.append(uniqueAddresses.index(reg.address))
-                    f.write('    regs_defaults(%d)(%s) <= %s;\n' % (uniqueAddresses.index(reg.address), VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_BIT' if isSingleBit else VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_MSB' + ' downto ' + VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_LSB', VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_DEFAULT'))
+
+                    if not uniqueAddresses.index(reg.address) in writable_reg_addresses:
+                        writable_reg_addresses.append(uniqueAddresses.index(reg.address))
+
+                    if (is_single_bit):
+                        bit_suffix = '_BIT'
+                    else:
+                        bit_suffix = '_MSB' + ' downto ' + VHDL_REG_CONSTANT_PREFIX \
+                            + reg.get_vhdl_name() + '_LSB'
+
+                    f.write('    regs_defaults(%d)(%s) <= %s;\n' % \
+                            (uniqueAddresses.index(reg.address), \
+                             VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + bit_suffix,
+                             VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_DEFAULT'))
 
             f.write('\n')
 
             # Writable regs
             # connect read ready signals
             f.write('    -- Define writable regs\n')
-            for regAddr in writableRegAddresses:
-                    f.write("    regs_writable_arr(%d) <= '1';\n" % (regAddr))
+            for reg_addr in writable_reg_addresses:
+                    f.write("    regs_writable_arr(%d) <= '1';\n" % (reg_addr))
 
             f.write('\n')
 
@@ -1161,7 +1182,7 @@ def update_module_file(module):
     print((module.file_name).replace(".vhd",SUFFIX+".vhd"))
     shutil.copy (tempname, (module.file_name).replace(".vhd",SUFFIX+".vhd"))
 
-    if not signalSectionFound or not signalSectionDone:
+    if not signal_section_found or not signal_section_done:
         print('--> ERROR <-- Could not find a signal section in the file.. Please include "' \
               + VHDL_REG_SIGNAL_MARKER_START + '" and "' + VHDL_REG_SIGNAL_MARKER_END \
               + '" comments denoting the area where the generated code will be inserted')
@@ -1170,7 +1191,7 @@ def update_module_file(module):
         print('        ' + VHDL_REG_SIGNAL_MARKER_END + ' ----------------------------------------------')
         raise ValueError('No signal declaration markers found in %s -- see above' % module.file_name)
 
-    if not slaveSectionFound or not slaveSectionDone:
+    if not slave_section_found or not slave_section_done:
         print('--> ERROR <-- Could not find a slave section in the file.. Please include "' \
               + VHDL_REG_SLAVE_MARKER_START + '" and "' + VHDL_REG_SLAVE_MARKER_END \
               + '" comments denoting the area where the generated code will be inserted')
@@ -1184,22 +1205,22 @@ def update_module_file(module):
     if not registersLibraryFound:
         raise ValueError('Registers library not included in %s -- \
         please add "use work.registers.all;"' % module.file_name)
-    if duplicateWritePulseError:
+    if duplicate_write_pulse_error:
         raise ValueError("Two or more write pulse signals in module %s \
         are associated with the same register address \
         (only one write pulse per reg address is allowed), \
         more details are printed to the module file" % module.file_name)
-    if duplicateWriteDoneError:
+    if duplicate_write_done_error:
         raise ValueError("Two or more write done signals in module %s \
         are associated with the same register address \
         (only one write done signal per reg address is allowed), \
         more details are printed to the module file" % module.file_name)
-    if duplicateReadPulseError:
+    if duplicate_read_pulse_error:
         raise ValueError("Two or more read pulse signals in module %s \
         are associated with the same register address \
         (only one read pulse per reg address is allowed), \
         more details are printed to the module file" % module.file_name)
-    if duplicateReadReadyError:
+    if duplicate_read_ready_error:
         raise ValueError("Two or more read ready signals in module %s \
         are associated with the same register address \
         (only one read ready signal per reg address is allowed), \
