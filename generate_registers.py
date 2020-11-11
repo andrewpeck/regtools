@@ -59,61 +59,69 @@ VHDL_REG_SLAVE_MARKER_END   = '--==== Registers end'
 class Module:
     name = ''
     description = ''
-    baseAddress = 0x0
-    regAddressMsb = None
-    regAddressLsb = None
-    file = ''
-    userClock = ''
-    busClock = ''
-    busReset = ''
+    base_address = 0x0
+    reg_address_msb = None
+    reg_address_lsb = None
+    file_name = ''
+    user_clock = ''
+    bus_clock = ''
+    bus_reset = ''
     fw_cnt_reset_signal = None
-    masterBus = ''
-    slaveBus = ''
+    master_bus = ''
+    slave_bus = ''
 
-    # if this is true it means that firmware doesn't have to be modified, only bash scripts will be generated
-    isExternal = False
+    # if this is true it means that firmware doesn't have to be modified,
+    # only bash scripts will be generated
+    is_external = False
 
     def __init__(self):
+        """"""
         self.regs    = []
         self.parents = []
 
-    def addReg(self, reg):
+    def add_reg(self, reg):
+        """"""
         self.regs.append(reg)
 
-    def addParent(self, parent):
+    def add_parent(self, parent):
+        """"""
         self.parents.append(parent)
 
-    def isValid(self):
-        if self.isExternal:
+    def is_valid(self):
+        """"""
+        if self.is_external:
             return self.name is not None
-        else:
-            return self.name is not None \
-                and self.file is not None \
-                and self.userClock is not None \
-                and self.busClock is not None \
-                and self.busReset is not None \
-                and self.masterBus is not None \
-                and self.slaveBus is not None\
-                and self.regAddressMsb is not None \
-                and self.regAddressLsb is not None
 
-    def toString(self):
+        return self.name is not None \
+            and self.file_name is not None \
+            and self.user_clock is not None \
+            and self.bus_clock is not None \
+            and self.bus_reset is not None \
+            and self.master_bus is not None \
+            and self.slave_bus is not None\
+            and self.reg_address_msb is not None \
+            and self.reg_address_lsb is not None
+
+    def to_string(self):
+        """"""
         return str(self.name) + \
             ' module: ' + str(self.description) + '\n'\
-            + '    Base address = ' + hex(self.baseAddress) + '\n'\
-            + '    Register address MSB = ' + hex(self.regAddressMsb) + '\n'\
-            + '    Register address LSB = ' + hex(self.regAddressLsb) + '\n'\
-            + '    File = ' + str(self.file) + '\n'\
-            + '    User clock = ' + str(self.userClock) + '\n'\
-            + '    Bus clock = ' + str(self.busClock) + '\n'\
-            + '    Bus reset = ' + str(self.busReset) + '\n'\
-            + '    Master_bus = ' + str(self.masterBus) + '\n'\
-            + '    Slave_bus = ' + str(self.slaveBus)
+            + '    Base address = ' + hex(self.base_address) + '\n'\
+            + '    Register address MSB = ' + hex(self.reg_address_msb) + '\n'\
+            + '    Register address LSB = ' + hex(self.reg_address_lsb) + '\n'\
+            + '    File = ' + str(self.file_name) + '\n'\
+            + '    User clock = ' + str(self.user_clock) + '\n'\
+            + '    Bus clock = ' + str(self.bus_clock) + '\n'\
+            + '    Bus reset = ' + str(self.bus_reset) + '\n'\
+            + '    Master_bus = ' + str(self.master_bus) + '\n'\
+            + '    Slave_bus = ' + str(self.slave_bus)
 
-    def getVhdlName(self):
+    def get_vhdl_name(self):
+        """"""
         return self.name.replace(TOP_NODE_NAME + '.', '').replace('.', '_')
 
 class Register:
+    """"""
 
     name               = ''
     name_raw           = ''
@@ -147,8 +155,9 @@ class Register:
     msb = -1
     lsb = -1
 
-    def isValidReg(self, isExternal = False):
-        if isExternal:
+    def is_valid_reg(self, is_external = False):
+        """"""
+        if is_external:
             return self.name is not None \
                 and self.address is not None \
                 and self.permission is not None\
@@ -161,12 +170,12 @@ class Register:
                 and ((self.signal is not None and 'w' in self.permission) == (self.default is not None)) \
                 and (self.signal is not None or self.write_pulse_signal is not None or self.read_pulse_signal is not None)
 
-    def toString(self):
+    def to_string(self):
         ret = 'Register ' + str(self.name) + ': ' + str(self.description) + '\n'\
               '    Address = ' + hex(self.address) + '\n'\
-              '    Mask = ' + hexPadded32(self.mask) + '\n'\
+              '    Mask = ' + hex_padded32(self.mask) + '\n'\
               '    Permission = ' + str(self.permission) + '\n'\
-              '    Default value = ' + hexPadded32(self.default) + '\n'\
+              '    Default value = ' + hex_padded32(self.default) + '\n'\
 
         if self.signal is not None:
             ret += '    Signal = ' + str(self.signal) + '\n'
@@ -181,7 +190,8 @@ class Register:
 
         return ret
 
-    def getVhdlName(self):
+    def get_vhdl_name(self):
+        """"""
         return self.name.replace(TOP_NODE_NAME + '.', '').replace('.', '_')
 
 def main():
@@ -219,7 +229,7 @@ def main():
 
     if board_type in ('glib', 'ctp7'):
         config = CONFIG_AMC
-        if args.num_ohs != None:
+        if args.num_ohs is not None:
             num_of_oh = args.num_ohs
             print('Generating address table with num_of_oh = %d'%(num_of_oh))
         elif board_type == 'ctp7':
@@ -246,9 +256,6 @@ def main():
 
     if args.suffix is not None:
         SUFFIX = args.suffix;
-    elif (board_type == "oh"):
-        "Please specify a suffix when running on oh (i.e. -s _ge21)"
-        sys.exit(1)
 
     ADDRESS_TABLE_TOP             = config['ADDRESS_TABLE_TOP']
     CONSTANTS_FILE                = config['CONSTANTS_FILE']
@@ -266,231 +273,93 @@ def main():
     modules = []
     variables = {}
 
-    findRegisters(root, '', 0x0, modules, None, variables, False, num_of_oh)
+    find_registers(root, '', 0x0, modules, None, variables, False, num_of_oh)
 
-    if (VERBOSE):
+    if VERBOSE:
         print('Modules:')
         for module in modules:
             module.regs.sort(key=lambda reg: reg.address * 100 + reg.msb)
             print('============================================================================')
-            print(module.toString())
+            print(module.to_string())
             print('============================================================================')
             for reg in module.regs:
-                print(reg.toString())
+                print(reg.to_string())
 
     print('Writing constants file to ' + CONSTANTS_FILE.replace(".vhd",SUFFIX+".vhd"))
-    writeConstantsFile(modules, CONSTANTS_FILE.replace(".vhd",SUFFIX+".vhd"))
+    write_constants_file(modules, CONSTANTS_FILE.replace(".vhd",SUFFIX+".vhd"))
 
     print('Writing documentation file to ' + DOC_FILE.replace(".tex",SUFFIX+".tex"))
-    writeDocFile (modules, DOC_FILE)
+    write_docFile (modules, DOC_FILE)
 
     print('Writing org file to ' + DOC_FILE.replace(".org",SUFFIX+".org"))
     writeOrgFile (modules, DOC_FILE.replace(".tex",".org"))
 
-    if (PACKAGE_FILE!=''):
+    if PACKAGE_FILE!='':
         print('Writing package file to ' + PACKAGE_FILE)
-        writePackageFile (modules, PACKAGE_FILE)
+        write_package_file (modules, PACKAGE_FILE)
 
     for module in modules:
-        if not module.isExternal:
-            updateModuleFile(module)
+        if not module.is_external:
+            update_module_file(module)
 
-def findRegisters(node, baseName, baseAddress, modules, currentModule, variables, isGenerated, num_of_oh):
+def find_registers(node, base_name, base_address, modules, current_module, variables, is_generated, num_of_oh):
 
-    # Recursive loop to find registers
-
-    if isGenerated in (None, False) \
+    if is_generated in (None, False) \
        and node.get('generate') is not None \
        and node.get('generate') == 'true':
 
         if node.get('generate_idx_var') == 'OH_IDX':
-            generateSize = num_of_oh
-            variables [node.get('generate_idx_var')+'_LOOP_SIZE'] = generateSize
+            generate_size = num_of_oh
+            variables [node.get('generate_idx_var')+'_LOOP_SIZE'] = generate_size
         else:
-            generateSize = parseInt(node.get('generate_size'))
-            variables [node.get('generate_idx_var')+'_LOOP_SIZE'] = generateSize
+            generate_size = parse_int(node.get('generate_size'))
+            variables [node.get('generate_idx_var')+'_LOOP_SIZE'] = generate_size
 
-        generateAddressStep = parseInt(node.get('generate_address_step'))
-        generateIdxVar = node.get('generate_idx_var')
+        generate_address_step = parse_int(node.get('generate_address_step'))
+        generate_idx_var = node.get('generate_idx_var')
 
-        for i in range(0, generateSize):
+        for i in range(0, generate_size):
 
-            variables[generateIdxVar] = i
-            variables[generateIdxVar + "_STEP_SIZE"] = generateAddressStep
-            #print('generate base_addr = ' + hex(baseAddress + generateAddressStep * i) + ' for node ' + node.get('id'))
+            variables[generate_idx_var] = i
+            variables[generate_idx_var + "_STEP_SIZE"] = generate_address_step
+            #print('generate base_addr = ' + hex(base_address + generate_address_step * i) + ' for node ' + node.get('id'))
 
-            findRegisters(node, baseName, baseAddress + generateAddressStep * i, \
-                          modules, currentModule, variables, True, num_of_oh)
+            find_registers(node, base_name, base_address + generate_address_step * i, \
+                          modules, current_module, variables, True, num_of_oh)
         return
 
-    isModule = node.get('fw_is_module') is not None and node.get('fw_is_module') == 'true'
-    name = baseName
-    module = currentModule
-    if baseName != '':
+    is_module = node.get('fw_is_module') is not None and node.get('fw_is_module') == 'true'
+    name = base_name
+    module = current_module
+    if base_name != '':
         name += '.'
 
     if node.get('id') is not None:
         name += node.get('id')
-    address = baseAddress
 
-    if isModule:
-        processModule (name, node, module, modules, variables)
+    address = base_address
 
+    if is_module:
+        module, modules=process_module (name, node, modules, variables)
     else:
-
-        if node.get('address') is not None:
-            address = baseAddress + parseInt(node.get('address'))
-
-        # need some way to discriminate parent nodes from endpoints
-        if ( node.get('fw_signal')              is not None or
-            ((node.get('permission')             is not None
-            or node.get('mask')                   is not None
-            or node.get ('fw_write_pulse_signal') is not None)
-            and node.get('generate_size')         is     None
-            and node.get('generate')              is     None
-            and node.get('address')               is not None)
-        ):
-            reg = Register()
-            reg.name = substituteVars(name, variables)
-            reg.name_raw = name
-            reg.address = address
-            reg.description_raw = node.get('description')
-            reg.description = substituteVars(node.get('description'), variables)
-            reg.permission = node.get('permission')
-            if node.get('mask') is None:
-                reg.mask = 0xffffffff; # default to full 32bit mask if not specified
-            else:
-                reg.mask = parseInt(node.get('mask'))
-            msb, lsb = getLowHighFromBitmask(reg.mask)
-            reg.msb = msb
-            reg.lsb = lsb
-
-            global USED_REGISTER_SPACE
-
-            global_address = address + module.baseAddress
-            if (global_address in USED_REGISTER_SPACE):
-                if reg.permission == "rw" and (USED_REGISTER_SPACE[global_address] & reg.mask) != 0:
-                    error = 'Register write conflict on %s at address 0x%X' % (reg.name, global_address)
-                    raise ValueError(error)
-                else:
-                    USED_REGISTER_SPACE[global_address] |= reg.mask
-            else:
-                USED_REGISTER_SPACE[global_address] = reg.mask
-
-            reg.default = parseInt(node.get('fw_default'))
-            if node.get('fw_signal') is not None:
-                reg.signal = substituteVars(node.get('fw_signal'), variables)
-            if node.get('fw_write_pulse_signal') is not None:
-                reg.write_pulse_signal = substituteVars(node.get('fw_write_pulse_signal'), variables)
-            if node.get('fw_write_done_signal') is not None:
-                reg.write_done_signal = substituteVars(node.get('fw_write_done_signal'), variables)
-            if node.get('fw_read_pulse_signal') is not None:
-                reg.read_pulse_signal = substituteVars(node.get('fw_read_pulse_signal'), variables)
-            if node.get('fw_read_ready_signal') is not None:
-                reg.read_ready_signal = substituteVars(node.get('fw_read_ready_signal'), variables)
-
-
-            ################################################################################
-            # Counters
-            ################################################################################
-
-            if node.get('fw_cnt_en_signal') is not None:
-                reg.fw_cnt_en_signal = substituteVars (node.get('fw_cnt_en_signal'),variables)
-            if node.get('fw_cnt_reset_signal') is not None:
-                reg.fw_cnt_reset_signal = substituteVars (node.get('fw_cnt_reset_signal'),variables)
-            else:
-                reg.fw_cnt_reset_signal = module.busReset
-            if node.get('fw_cnt_snap_signal') is not None:
-                reg.fw_cnt_snap_signal = substituteVars (node.get('fw_cnt_snap_signal'),variables)
-            if node.get('fw_cnt_allow_rollover_signal') is not None:
-                reg.fw_cnt_allow_rollover_signal = substituteVars (node.get('fw_cnt_allow_rollover_signal'),variables)
-            if node.get('fw_cnt_increment_step_signal') is not None:
-                reg.fw_cnt_increment_step_signal = substituteVars (node.get('fw_cnt_increment_step_signal'),variables)
-
-            ################################################################################
-            # Rate Counter
-            ################################################################################
-
-            if node.get('fw_rate_reset_signal') is not None:
-                reg.fw_rate_reset_signal = substituteVars (node.get('fw_rate_reset_signal'),variables)
-            else:
-                reg.fw_rate_reset_signal = module.busReset
-
-            if node.get('fw_rate_log') is not None:
-                reg.fw_rate_log = substituteVars (node.get('fw_rate_log'),variables)
-            if node.get('fw_rate_en_signal') is not None:
-                reg.fw_rate_en_signal = substituteVars (node.get('fw_rate_en_signal'),variables)
-            if node.get('fw_rate_clk_frequency') is not None:
-                reg.fw_rate_clk_frequency = substituteVars (node.get('fw_rate_clk_frequency'),variables)
-            if node.get('fw_rate_inc_width') is not None:
-                reg.fw_rate_inc_width = substituteVars (node.get('fw_rate_inc_width'),variables)
-            if node.get('fw_rate_progress_bar_width') is not None:
-                reg.fw_rate_progress_bar_width = substituteVars (node.get('fw_rate_progress_bar_width'),variables)
-            if node.get('fw_rate_progress_bar_step') is not None:
-                reg.fw_rate_progress_bar_step = substituteVars (node.get('fw_rate_progress_bar_step'),variables)
-            if node.get('fw_rate_speedup') is not None:
-                reg.fw_rate_speedup = substituteVars (node.get('fw_rate_speedup'),variables)
-            if node.get('fw_rate_progress_bar_signal') is not None:
-                reg.fw_rate_progress_bar_signal = substituteVars (node.get('fw_rate_progress_bar_signal'),variables)
-
-            ################################################################################
-            # Error
-            ################################################################################
-
-            reg.gensize={}
-            reg.genvars={}
-            for varKey in variables.keys():
-                if reg.name_raw.find("${" + varKey + "}") > 0:
-                    reg.genvars [varKey] = variables[varKey]
-                    reg.gensize [varKey] = variables[varKey + "_LOOP_SIZE"]
-                    reg.genstep [varKey] = variables[varKey + "_STEP_SIZE"]
-
-            if module is None:
-                error = 'Module is not set, cannot add register ' + reg.name
-                raise ValueError(error)
-            if not reg.isValidReg(module.isExternal):
-                raise ValueError('One or more attributes for register %s are missing.. %s' % (reg.name, reg.toString()))
-
-            module.addReg(reg)
-
-        elif (node.get('id') is not None):
-
-            parent                 = Register()
-            parent.name            = substituteVars(name, variables)
-            parent.name_raw        = name
-            parent.description_raw = node.get('description')
-            parent.description     = substituteVars(node.get('description'), variables)
-
-            parent.gensize={}
-            parent.genvars={}
-            parent.genstep={}
-
-            for varKey in variables.keys():
-                if parent.name_raw.find("${" + varKey + "}") > 0:
-
-                    parent.genvars [varKey] = variables[varKey]
-                    parent.gensize [varKey] = variables[varKey + "_LOOP_SIZE"]
-                    parent.genstep [varKey] = variables[varKey + "_STEP_SIZE"]
-
-            if (module is not None):
-                module.addParent(parent)
+        address, node, module, modules = \
+            process_register(name, base_address, node, module, modules, variables)
 
     for child in node:
-        findRegisters(child, name, address, modules, module, variables, False, num_of_oh)
+        find_registers(child, name, address, modules, module, variables, False, num_of_oh)
 
 def writeOrgFile (modules, filename):
 
     def convert_newlines(string):
         if string is None:
             string=""
-        str = string.replace('\\n','|\n|            |      |         |     |     |  ')
-        #str = str + "|"
-        return str
+        ret = string.replace('\\n','|\n|            |      |         |     |     |  ')
+        return ret
 
     def write_module_name (f, module):
         module_name = module.name
         f.write ('\n')
-        f.write ('* Module %s \t adr = ~0x%x~\n' % (module_name, module.baseAddress))
+        f.write ('* Module %s \t adr = ~0x%x~\n' % (module_name, module.base_address))
         f.write ('\n')
         f.write ('%s\n' % (module.description))
         f.write ('\n')
@@ -511,8 +380,8 @@ def writeOrgFile (modules, filename):
         def idx_to_xyz (idx):
             return idx.replace('GBT_IDX','GBT{N}').replace('OH_IDX','OH{X}').replace('VFAT_IDX','VFAT{Y}').replace('CHANNEL_IDX','CHANNEL{Z}')
 
-        for varKey in parent.genvars.keys():
-            f.write('Generated range of %s is ~[%d:0]~ adr_step = ~0x%X~ (%d)\n' % (idx_to_xyz(varKey), parent.gensize[varKey]-1, parent.genstep[varKey], parent.genstep[varKey]))
+        for key in parent.genvars.keys():
+            f.write('Generated range of %s is ~[%d:0]~ adr_step = ~0x%X~ (%d)\n' % (idx_to_xyz(key), parent.gensize[key]-1, parent.genstep[key], parent.genstep[key]))
 
     def write_start_of_reg_table (f):
         f.write('|------------+------+---------+------+-----+----------------------------|\n')
@@ -521,20 +390,20 @@ def writeOrgFile (modules, filename):
 
     def write_reg_entry (f, endpoint_name, address, bithi, bitlo, permission, default, description):
 
-        if (default!="Pulsed"):
+        if default!="Pulsed":
             if (permission!="r"):
                 default = ("~%s~" % default)
         else:
             default="Pulse"
 
         bitstr = ("[%d:%d]" % (bithi, bitlo))
-        if (bithi==bitlo):
+        if bithi==bitlo:
             bitstr = ("%d" % (bithi))
 
         f.write('|%s | ~0x%x~ | ~%s~ | %s | %s | %s | \n' % (endpoint_name, address, bitstr, permission, default, convert_newlines(description)))
         f.write('|------------+------+---------+-----+-----+----------------------------|\n')
 
-    def writeDoc (filename):
+    def write_doc (filename):
 
         f = filename
 
@@ -572,18 +441,18 @@ def writeOrgFile (modules, filename):
 
                 is_first_in_loop = 1
                 reg_unrolling_is_supressed = 0
-                for varKey in reg.genvars.keys():
-                    if (varKey == "GBT_IDX" or varKey == "OH_IDX" or varKey == "VFAT_IDX" or varKey == "CHANNEL_IDX"):
+                for key in reg.genvars.keys():
+                    if (key == "GBT_IDX" or key == "OH_IDX" or key == "VFAT_IDX" or key == "CHANNEL_IDX"):
                         reg_unrolling_is_supressed = 1
-                        if (reg.genvars[varKey] > 0):
+                        if (reg.genvars[key] > 0):
                             is_first_in_loop = 0
 
-                if (is_first_in_loop == 0):
+                if is_first_in_loop == 0:
                     continue
 
                 name          = reg.name
                 name_split    = reg.name_raw.split('.')
-                address       = reg.address + module.baseAddress
+                address       = reg.address + module.base_address
 
 
                 endpoint_name = reg.name.split('.')[-1]
@@ -607,7 +476,7 @@ def writeOrgFile (modules, filename):
 
                 # error if we can't find the parent
 
-                if (not parent_found):
+                if not parent_found:
                     raise ValueError("Somethings wrong... parent not found for node %s" % name);
 
                 # write a header if this is a new parent
@@ -622,11 +491,11 @@ def writeOrgFile (modules, filename):
                     variables = { 'GBT_IDX' : '{N}' , 'OH_IDX' : '{X}' , 'VFAT_IDX' : '{Y}', 'CHANNEL_IDX' : '{Z}' }
 
                     # Write name of parent node
-                    write_parent_name (f, substituteVars(reg_parent.name_raw, variables))
+                    write_parent_name (f, substitute_vars(reg_parent.name_raw, variables))
 
                     # If parent has a description, write it
                     if (reg_parent.description!="" and reg_parent.description!=None):
-                        write_parent_description (f, substituteVars(reg_parent.description_raw, variables))
+                        write_parent_description (f, substitute_vars(reg_parent.description_raw, variables))
 
                     # If parent is a generator, record generation properties
                     if (len(reg_parent.genvars)>0):
@@ -644,12 +513,12 @@ def writeOrgFile (modules, filename):
                         reg_default = ""
                     else:
                         reg_default = "0x%X" % reg.default
-                if (reg.write_pulse_signal!=None):
+                if reg.write_pulse_signal!=None:
                     reg_default = "Pulsed"
 
                 description=""
                 if (reg_unrolling_is_supressed ):
-                    description=substituteVars(reg.description_raw,variables)
+                    description=substitute_vars(reg.description_raw,variables)
                 else:
                     description=reg.description
 
@@ -666,9 +535,9 @@ def writeOrgFile (modules, filename):
     MARKER_END   = "# END: ADDRESS_TABLE :: DO NOT EDIT"
 
     outfile = filename.replace(".org",SUFFIX+".org")
-    insert_code (filename, outfile, MARKER_START, MARKER_END, writeDoc)
+    insert_code (filename, outfile, MARKER_START, MARKER_END, write_doc)
 
-def writeDocFile (modules, filename):
+def write_docFile (modules, filename):
 
     def latexify(string):
         if string is None:
@@ -685,7 +554,7 @@ def writeDocFile (modules, filename):
         module_name = module.name
         f.write ('\n')
         f.write ('%s\pagebreak\n' % (padding))
-        f.write ('%s\\section{Module: %s \\hfill \\texttt{0x%x}}\n' % (padding, latexify(module_name), module.baseAddress))
+        f.write ('%s\\section{Module: %s \\hfill \\texttt{0x%x}}\n' % (padding, latexify(module_name), module.base_address))
         f.write ('\n')
         f.write ('%s%s\\\\\n' % (padding, latexify(module.description)))
         f.write ('\n')
@@ -720,8 +589,8 @@ def writeDocFile (modules, filename):
         f.write ('%s\\noindent\n' % (padding) )
         f.write ('%s\\keepXColumns\n' % (padding))
         f.write ('%s\\begin{tabularx}{\\linewidth}{  l  l  l  r   X }\n' % (padding))
-        for varKey in parent.genvars.keys():
-            f.write('%sGenerated range of & %s & is & \\texttt{[%d:0]} & adr\_step=0x%X (%d) \\\\ \n' % (padding,  latexify(idx_to_xyz(varKey)), parent.gensize[varKey]-1, parent.genstep[varKey], parent.genstep[varKey]))
+        for key in parent.genvars.keys():
+            f.write('%sGenerated range of & %s & is & \\texttt{[%d:0]} & adr\_step=0x%X (%d) \\\\ \n' % (padding,  latexify(idx_to_xyz(key)), parent.gensize[key]-1, parent.genstep[key], parent.genstep[key]))
         f.write('%s\\end{tabularx}\n' % (padding))
 
     def write_start_of_reg_table_latex (f):
@@ -742,7 +611,7 @@ def writeDocFile (modules, filename):
 
         f.write('%s%s & \\texttt{0x%x} & \\texttt{[%d:%d]} & %s & %s & %s \\\\\hline\n' % (padding,latexify(endpoint_name), address, bithi, bitlo, permission, default, convert_newlines(latexify(description))))
 
-    def writeDoc (filename):
+    def write_doc (filename):
 
         f = filename
 
@@ -783,10 +652,10 @@ def writeDocFile (modules, filename):
 
                 is_first_in_loop = 1
                 reg_unrolling_is_supressed = 0
-                for varKey in reg.genvars.keys():
-                    if (varKey == "GBT_IDX" or varKey == "OH_IDX" or varKey == "VFAT_IDX" or varKey == "CHANNEL_IDX"):
+                for key in reg.genvars.keys():
+                    if (key == "GBT_IDX" or key == "OH_IDX" or key == "VFAT_IDX" or key == "CHANNEL_IDX"):
                         reg_unrolling_is_supressed = 1
-                        if (reg.genvars[varKey] > 0):
+                        if (reg.genvars[key] > 0):
                             is_first_in_loop = 0
 
                 if (is_first_in_loop == 0):
@@ -794,7 +663,7 @@ def writeDocFile (modules, filename):
 
                 name          = reg.name
                 name_split    = reg.name_raw.split('.')
-                address       = reg.address + module.baseAddress
+                address       = reg.address + module.base_address
 
 
                 endpoint_name = reg.name.split('.')[-1]
@@ -833,11 +702,11 @@ def writeDocFile (modules, filename):
                     variables = { 'GBT_IDX' : '{N}' , 'OH_IDX' : '{X}' , 'VFAT_IDX' : '{Y}', 'CHANNEL_IDX' : '{Z}' }
 
                     # Write name of parent node
-                    write_parent_name_latex (f, substituteVars(reg_parent.name_raw, variables))
+                    write_parent_name_latex (f, substitute_vars(reg_parent.name_raw, variables))
 
                     # If parent has a description, write it
                     if (reg_parent.description!="" and reg_parent.description!=None):
-                        write_parent_description_latex (f, substituteVars(reg_parent.description_raw, variables))
+                        write_parent_description_latex (f, substitute_vars(reg_parent.description_raw, variables))
 
                     # If parent is a generator, record generation properties
                     if (len(reg_parent.genvars)>0):
@@ -860,7 +729,7 @@ def writeDocFile (modules, filename):
 
                 description=""
                 if (reg_unrolling_is_supressed ):
-                    description=substituteVars(reg.description_raw,variables)
+                    description=substitute_vars(reg.description_raw,variables)
                 else:
                     description=reg.description
 
@@ -877,11 +746,11 @@ def writeDocFile (modules, filename):
     MARKER_END   = "% END: ADDRESS_TABLE :: DO NOT EDIT"
 
     outfile = filename.replace(".tex",SUFFIX+".tex")
-    insert_code (filename, outfile, MARKER_START, MARKER_END, writeDoc)
+    insert_code (filename, outfile, MARKER_START, MARKER_END, write_doc)
 
-def writePackageFile (modules, filename):
+def write_package_file (modules, filename):
 
-    def writeIPBusSlaves (filename):
+    def write_ipbus_slaves (filename):
 
         f = filename
 
@@ -890,9 +759,9 @@ def writePackageFile (modules, filename):
         imodule=0
         f.write('%stype t_ipb_slv is record\n'             % (padding))
         for module in modules:
-            if module.isExternal:
+            if module.is_external:
                 continue
-            f.write('%s    %15s   : integer;\n'            % (padding, module.getVhdlName()))
+            f.write('%s    %15s   : integer;\n'            % (padding, module.get_vhdl_name()))
             imodule = imodule + 1
         f.write('%send record;\n'                          % (padding))
 
@@ -900,15 +769,15 @@ def writePackageFile (modules, filename):
         f.write('%s-- IPbus slave index definition\n'      % (padding))
         f.write('%sconstant IPB_SLAVE : t_ipb_slv := (\n'  % (padding))
         for module in modules:
-            if module.isExternal:
+            if module.is_external:
                 continue
             if (imodule != 0):
                 f.write(',\n')
-            f.write('%s    %15s  => %d'                 % (padding, module.getVhdlName(), imodule))
+            f.write('%s    %15s  => %d'                 % (padding, module.get_vhdl_name(), imodule))
             imodule = imodule + 1
         f.write('%s);\n'                                   % (padding))
 
-    def writeIPBusAddrSel (filename):
+    def write_ipbus_addr_sel (filename):
 
         f = filename
 
@@ -924,22 +793,22 @@ def writePackageFile (modules, filename):
             else:
                 start = "elsif"
 
-            if module.isExternal:
+            if module.is_external:
                 continue
-            f.write('%s%s(std_match(addr, std_logic_vector(to_unsigned(IPB_SLAVE.%15s,     %d))  & "------------")) then sel := IPB_SLAVE.%s;\n' % (padding, start, module.getVhdlName(), modulebits, module.getVhdlName()))
+            f.write('%s%s(std_match(addr, std_logic_vector(to_unsigned(IPB_SLAVE.%15s,     %d))  & "------------")) then sel := IPB_SLAVE.%s;\n' % (padding, start, module.get_vhdl_name(), modulebits, module.get_vhdl_name()))
 
             imodule = imodule + 1
 
     MARKER_START = "-- START: IPBUS_SLAVES :: DO NOT EDIT"
     MARKER_END   = "-- END: IPBUS_SLAVES :: DO NOT EDIT"
-    insert_code (filename, filename, MARKER_START, MARKER_END, writeIPBusSlaves)
+    insert_code (filename, filename, MARKER_START, MARKER_END, write_ipbus_slaves)
 
     MARKER_START = "-- START: IPBUS_ADDR_SEL :: DO NOT EDIT"
     MARKER_END   = "-- END: IPBUS_ADDR_SEL :: DO NOT EDIT"
-    insert_code (filename, filename, MARKER_START, MARKER_END, writeIPBusAddrSel)
+    insert_code (filename, filename, MARKER_START, MARKER_END, write_ipbus_addr_sel)
 
 
-def writeConstantsFile(modules, filename):
+def write_constants_file(modules, filename):
     f = io.open (filename, "w", newline='')
     f.write('library IEEE;\n'\
             'use IEEE.STD_LOGIC_1164.all;\n\n')
@@ -947,56 +816,56 @@ def writeConstantsFile(modules, filename):
     f.write('package registers is\n')
 
     for module in modules:
-        if module.isExternal:
+        if module.is_external:
             continue
 
-        totalRegs32 = getNumRequiredRegs32(module)
+        total_regs32 = get_num_required_regs32(module)
 
         # check if we have enough address bits for the max reg address (recall that the reg list is sorted by address)
         topAddressBinary = "{0:#0b}".format(module.regs[-1].address)
         numAddressBitsNeeded = len(topAddressBinary) - 2
         if (VERBOSE):
-            print('    > Top address of the module ' + module.getVhdlName() + ' is ' + hex(module.regs[-1].address) + ' (' + topAddressBinary + '), need ' + str(numAddressBitsNeeded) + ' bits and have ' + str(module.regAddressMsb - module.regAddressLsb + 1) + ' bits available')
-        if numAddressBitsNeeded > module.regAddressMsb - module.regAddressLsb + 1:
+            print('    > Top address of the module ' + module.get_vhdl_name() + ' is ' + hex(module.regs[-1].address) + ' (' + topAddressBinary + '), need ' + str(numAddressBitsNeeded) + ' bits and have ' + str(module.reg_address_msb - module.reg_address_lsb + 1) + ' bits available')
+        if numAddressBitsNeeded > module.reg_address_msb - module.reg_address_lsb + 1:
             raise ValueError('There is not enough bits in the module address space to accomodate all registers (see above for details). Please modify fw_reg_addr_msb and/or fw_reg_addr_lsb attributes in the xml file')
 
 
         f.write('\n')
         f.write('    --============================================================================\n')
-        f.write('    --       >>> ' + module.getVhdlName() + ' Module <<<    base address: ' + hexPadded32(module.baseAddress) + '\n')
+        f.write('    --       >>> ' + module.get_vhdl_name() + ' Module <<<    base address: ' + hex_padded32(module.base_address) + '\n')
         f.write('    --\n')
         for line in tw.wrap(module.description, 75):
             f.write('    -- ' + line + '\n')
         f.write('    --============================================================================\n\n')
 
-        f.write('    constant ' + VHDL_REG_CONSTANT_PREFIX + module.getVhdlName() + '_NUM_REGS : integer := ' + str(totalRegs32) + ';\n')
-        f.write('    constant ' + VHDL_REG_CONSTANT_PREFIX + module.getVhdlName() + '_ADDRESS_MSB : integer := ' + str(module.regAddressMsb) + ';\n')
-        f.write('    constant ' + VHDL_REG_CONSTANT_PREFIX + module.getVhdlName() + '_ADDRESS_LSB : integer := ' + str(module.regAddressLsb) + ';\n')
-        #f.write('    type T_' + VHDL_REG_CONSTANT_PREFIX + module.getVhdlName() + '_ADDRESS_ARR is array(integer range <>) of std_logic_vector(%s downto %s);\n\n' % (VHDL_REG_CONSTANT_PREFIX + module.getVhdlName() + '_ADDRESS_MSB', VHDL_REG_CONSTANT_PREFIX + module.getVhdlName() + '_ADDRESS_LSB')) # cannot use that because we need to be able to pass it as a generic type to the generic IPBus slave module
+        f.write('    constant ' + VHDL_REG_CONSTANT_PREFIX + module.get_vhdl_name() + '_NUM_REGS : integer := ' + str(total_regs32) + ';\n')
+        f.write('    constant ' + VHDL_REG_CONSTANT_PREFIX + module.get_vhdl_name() + '_ADDRESS_MSB : integer := ' + str(module.reg_address_msb) + ';\n')
+        f.write('    constant ' + VHDL_REG_CONSTANT_PREFIX + module.get_vhdl_name() + '_ADDRESS_LSB : integer := ' + str(module.reg_address_lsb) + ';\n')
+        #f.write('    type T_' + VHDL_REG_CONSTANT_PREFIX + module.get_vhdl_name() + '_ADDRESS_ARR is array(integer range <>) of std_logic_vector(%s downto %s);\n\n' % (VHDL_REG_CONSTANT_PREFIX + module.get_vhdl_name() + '_ADDRESS_MSB', VHDL_REG_CONSTANT_PREFIX + module.get_vhdl_name() + '_ADDRESS_LSB')) # cannot use that because we need to be able to pass it as a generic type to the generic IPBus slave module
 
         for reg in module.regs:
             #print('Writing register constants for ' + reg.name)
-            f.write('    constant ' + VHDL_REG_CONSTANT_PREFIX + reg.getVhdlName() + '_ADDR    : '\
-                        'std_logic_vector(' + str(module.regAddressMsb) + ' downto ' + str(module.regAddressLsb) + ') := ' + \
-                        vhdlHexPadded(reg.address, module.regAddressMsb - module.regAddressLsb + 1)  + ';\n')
+            f.write('    constant ' + VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_ADDR    : '\
+                        'std_logic_vector(' + str(module.reg_address_msb) + ' downto ' + str(module.reg_address_lsb) + ') := ' + \
+                        vhdl_hex_padded(reg.address, module.reg_address_msb - module.reg_address_lsb + 1)  + ';\n')
             if reg.msb == reg.lsb:
-                f.write('    constant ' + VHDL_REG_CONSTANT_PREFIX + reg.getVhdlName() + '_BIT    : '\
+                f.write('    constant ' + VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_BIT    : '\
                             'integer := ' + str(reg.msb) + ';\n')
             else:
-                f.write('    constant ' + VHDL_REG_CONSTANT_PREFIX + reg.getVhdlName() + '_MSB    : '\
+                f.write('    constant ' + VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_MSB    : '\
                             'integer := ' + str(reg.msb) + ';\n')
-                f.write('    constant ' + VHDL_REG_CONSTANT_PREFIX + reg.getVhdlName() + '_LSB     : '\
+                f.write('    constant ' + VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_LSB     : '\
                             'integer := ' + str(reg.lsb) + ';\n')
             if (reg.default==-1):
-                f.write('  --constant ' + VHDL_REG_CONSTANT_PREFIX + reg.getVhdlName() + '_DEFAULT should be supplied externally\n')
+                f.write('  --constant ' + VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_DEFAULT should be supplied externally\n')
             elif reg.default is not None and reg.msb - reg.lsb > 0:
-                f.write('    constant ' + VHDL_REG_CONSTANT_PREFIX + reg.getVhdlName() + '_DEFAULT : '\
+                f.write('    constant ' + VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_DEFAULT : '\
                             'std_logic_vector(' + str(reg.msb) + ' downto ' + str(reg.lsb) + ') := ' + \
-                            vhdlHexPadded(reg.default, reg.msb - reg.lsb + 1)  + ';\n')
+                            vhdl_hex_padded(reg.default, reg.msb - reg.lsb + 1)  + ';\n')
             elif reg.default is not None and reg.msb - reg.lsb == 0:
-                f.write('    constant ' + VHDL_REG_CONSTANT_PREFIX + reg.getVhdlName() + '_DEFAULT : '\
+                f.write('    constant ' + VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_DEFAULT : '\
                             'std_logic := ' + \
-                            vhdlHexPadded(reg.default, reg.msb - reg.lsb + 1)  + ';\n')
+                            vhdl_hex_padded(reg.default, reg.msb - reg.lsb + 1)  + ';\n')
             f.write('\n')
 
     f.write('\n')
@@ -1004,22 +873,22 @@ def writeConstantsFile(modules, filename):
     f.close()
     print("    > DONE" )
 
-def updateModuleFile(module):
+def update_module_file(module):
 
-    if module.isExternal:
+    if module.is_external:
         return
 
-    totalRegs32 = getNumRequiredRegs32(module)
-    print('Updating ' + module.name + ' module in file = ' + module.file)
+    total_regs32 = get_num_required_regs32(module)
+    print('Updating ' + module.name + ' module in file = ' + module.file_name)
 
     # copy lines out of source file
-    f = open(module.file, 'r+')
+    f = open(module.file_name, 'r+')
     lines = f.readlines()
     f.close()
 
     # create temp file for writing to
     tempname = tempfile.mktemp()
-    shutil.copy (module.file, tempname)
+    shutil.copy (module.file_name, tempname)
     f = io.open (tempname, "w", newline='')
 
     signalSectionFound = False
@@ -1054,7 +923,7 @@ def updateModuleFile(module):
                                         "    signal regs_read_ready_arr  : std_logic_vector(<num_regs> - 1 downto 0) := (others => '1');\n" \
                                         "    signal regs_write_done_arr  : std_logic_vector(<num_regs> - 1 downto 0) := (others => '1');\n" \
                                         "    signal regs_writable_arr    : std_logic_vector(<num_regs> - 1 downto 0) := (others => '0');\n"
-            signalDeclaration = signalDeclaration.replace('<num_regs>', VHDL_REG_CONSTANT_PREFIX + module.getVhdlName() + '_NUM_REGS')
+            signalDeclaration = signalDeclaration.replace('<num_regs>', VHDL_REG_CONSTANT_PREFIX + module.get_vhdl_name() + '_NUM_REGS')
             f.write(signalDeclaration)
 
             # connect counter en signal declarations
@@ -1079,18 +948,18 @@ def updateModuleFile(module):
             slaveSectionFound = True
             slaveDeclaration =  '    ipbus_slave_inst : entity work.ipbus_slave_tmr\n'\
                                 '        generic map(\n'\
-                                '           g_ENABLE_TMR           => %s,\n' % ('EN_TMR_IPB_SLAVE_'     + module.getVhdlName()) + \
-                                '           g_NUM_REGS             => %s,\n' % (VHDL_REG_CONSTANT_PREFIX + module.getVhdlName() + '_NUM_REGS') + \
-                                '           g_ADDR_HIGH_BIT        => %s,\n' % (VHDL_REG_CONSTANT_PREFIX + module.getVhdlName() + '_ADDRESS_MSB') + \
-                                '           g_ADDR_LOW_BIT         => %s,\n' % (VHDL_REG_CONSTANT_PREFIX + module.getVhdlName() + '_ADDRESS_LSB') + \
+                                '           g_ENABLE_TMR           => %s,\n' % ('EN_TMR_IPB_SLAVE_'     + module.get_vhdl_name()) + \
+                                '           g_NUM_REGS             => %s,\n' % (VHDL_REG_CONSTANT_PREFIX + module.get_vhdl_name() + '_NUM_REGS') + \
+                                '           g_ADDR_HIGH_BIT        => %s,\n' % (VHDL_REG_CONSTANT_PREFIX + module.get_vhdl_name() + '_ADDRESS_MSB') + \
+                                '           g_ADDR_LOW_BIT         => %s,\n' % (VHDL_REG_CONSTANT_PREFIX + module.get_vhdl_name() + '_ADDRESS_LSB') + \
                                 '           g_USE_INDIVIDUAL_ADDRS => true\n'\
                                 '       )\n'\
                                 '       port map(\n'\
-                                '           ipb_reset_i            => %s,\n' % (module.busReset) + \
-                                '           ipb_clk_i              => %s,\n' % (module.busClock) + \
-                                '           ipb_mosi_i             => %s,\n' % (module.masterBus) + \
-                                '           ipb_miso_o             => %s,\n' % (module.slaveBus) + \
-                                '           usr_clk_i              => %s,\n' % (module.userClock) + \
+                                '           ipb_reset_i            => %s,\n' % (module.bus_reset) + \
+                                '           ipb_clk_i              => %s,\n' % (module.bus_clock) + \
+                                '           ipb_mosi_i             => %s,\n' % (module.master_bus) + \
+                                '           ipb_miso_o             => %s,\n' % (module.slave_bus) + \
+                                '           usr_clk_i              => %s,\n' % (module.user_clock) + \
                                 '           regs_read_arr_i        => regs_read_arr,\n'\
                                 '           regs_write_arr_o       => regs_write_arr,\n'\
                                 '           read_pulse_arr_o       => regs_read_pulse_arr,\n'\
@@ -1112,12 +981,12 @@ def updateModuleFile(module):
             for reg in module.regs:
                 if not reg.address in uniqueAddresses:
                     uniqueAddresses.append(reg.address)
-            if len(uniqueAddresses) != totalRegs32:
+            if len(uniqueAddresses) != total_regs32:
                 raise ValueError("Something's wrong.. Got a list of unique addresses which is of different length than the total number of 32bit addresses previously calculated..");
 
             f.write('    -- Addresses\n')
-            for i in range(0, totalRegs32):
-                f.write('    regs_addresses(%d)(%s downto %s) <= %s;\n' % (i, VHDL_REG_CONSTANT_PREFIX + module.getVhdlName() + '_ADDRESS_MSB', VHDL_REG_CONSTANT_PREFIX + module.getVhdlName() + '_ADDRESS_LSB', vhdlHexPadded(uniqueAddresses[i], module.regAddressMsb - module.regAddressLsb + 1))) # TODO: this is a hack using literal values - you should sort it out in the future and use constants (the thing is that the register address constants are not good for this since there are more of them than there are 32bit registers, so you need a constant for each group of regs that go to the same 32bit reg)
+            for i in range(0, total_regs32):
+                f.write('    regs_addresses(%d)(%s downto %s) <= %s;\n' % (i, VHDL_REG_CONSTANT_PREFIX + module.get_vhdl_name() + '_ADDRESS_MSB', VHDL_REG_CONSTANT_PREFIX + module.get_vhdl_name() + '_ADDRESS_LSB', vhdl_hex_padded(uniqueAddresses[i], module.reg_address_msb - module.reg_address_lsb + 1))) # TODO: this is a hack using literal values - you should sort it out in the future and use constants (the thing is that the register address constants are not good for this since there are more of them than there are 32bit registers, so you need a constant for each group of regs that go to the same 32bit reg)
             f.write('\n')
 
             # connect read signals
@@ -1125,7 +994,7 @@ def updateModuleFile(module):
             for reg in module.regs:
                 isSingleBit = reg.msb == reg.lsb
                 if 'r' in reg.permission:
-                    f.write('    regs_read_arr(%d)(%s) <= %s;\n' % (uniqueAddresses.index(reg.address), VHDL_REG_CONSTANT_PREFIX + reg.getVhdlName() + '_BIT' if isSingleBit else VHDL_REG_CONSTANT_PREFIX + reg.getVhdlName() + '_MSB' + ' downto ' + VHDL_REG_CONSTANT_PREFIX + reg.getVhdlName() + '_LSB', reg.signal))
+                    f.write('    regs_read_arr(%d)(%s) <= %s;\n' % (uniqueAddresses.index(reg.address), VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_BIT' if isSingleBit else VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_MSB' + ' downto ' + VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_LSB', reg.signal))
 
             f.write('\n')
 
@@ -1134,7 +1003,7 @@ def updateModuleFile(module):
             for reg in module.regs:
                 isSingleBit = reg.msb == reg.lsb
                 if 'w' in reg.permission and reg.signal is not None:
-                    f.write('    %s <= regs_write_arr(%d)(%s);\n' % (reg.signal, uniqueAddresses.index(reg.address), VHDL_REG_CONSTANT_PREFIX + reg.getVhdlName() + '_BIT' if isSingleBit else VHDL_REG_CONSTANT_PREFIX + reg.getVhdlName() + '_MSB' + ' downto ' + VHDL_REG_CONSTANT_PREFIX + reg.getVhdlName() + '_LSB'))
+                    f.write('    %s <= regs_write_arr(%d)(%s);\n' % (reg.signal, uniqueAddresses.index(reg.address), VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_BIT' if isSingleBit else VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_MSB' + ' downto ' + VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_LSB'))
 
             f.write('\n')
 
@@ -1193,7 +1062,7 @@ def updateModuleFile(module):
                 # COUNTER WITH SNAP
                 if reg.fw_cnt_en_signal is not None and reg.fw_cnt_snap_signal != '\'1\'':
                     f.write ("\n")
-                    f.write ('    COUNTER_%s : entity work.counter_snap\n' % (reg.getVhdlName()))
+                    f.write ('    COUNTER_%s : entity work.counter_snap\n' % (reg.get_vhdl_name()))
                     f.write ('    generic map (\n')
                     if (reg.fw_cnt_increment_step!='1'):
                         f.write ('        g_INCREMENT_STEP => %s,\n' % (reg.fw_cnt_increment_step))
@@ -1202,7 +1071,7 @@ def updateModuleFile(module):
                     f.write ('        g_COUNTER_WIDTH  => %s\n' % (reg.msb - reg.lsb + 1))
                     f.write ('    )\n')
                     f.write ('    port map (\n')
-                    f.write ('        ref_clk_i => %s,\n' % (module.userClock))
+                    f.write ('        ref_clk_i => %s,\n' % (module.user_clock))
                     f.write ('        reset_i   => %s,\n' % (reg.fw_cnt_reset_signal))
                     f.write ('        en_i      => %s,\n' % (reg.fw_cnt_en_signal))
                     f.write ('        snap_i    => %s,\n' % (reg.fw_cnt_snap_signal))
@@ -1213,7 +1082,7 @@ def updateModuleFile(module):
                 # COUNTER WITHOUT SNAP
                 elif reg.fw_cnt_en_signal is not None:
                     f.write ("\n")
-                    f.write ('    COUNTER_%s : entity work.counter\n' % (reg.getVhdlName()))
+                    f.write ('    COUNTER_%s : entity work.counter\n' % (reg.get_vhdl_name()))
                     f.write ('    generic map (\n')
                     if (reg.fw_cnt_increment_step!='1'):
                         f.write ('        g_INCREMENT_STEP => %s,\n' % (reg.fw_cnt_increment_step))
@@ -1222,7 +1091,7 @@ def updateModuleFile(module):
                     f.write ('        g_COUNTER_WIDTH  => %s\n' % (reg.msb - reg.lsb + 1))
                     f.write ('    )\n')
                     f.write ('    port map (\n')
-                    f.write ('        ref_clk_i => %s,\n' % (module.userClock))
+                    f.write ('        ref_clk_i => %s,\n' % (module.user_clock))
                     f.write ('        reset_i   => %s,\n' % (reg.fw_cnt_reset_signal))
                     f.write ('        en_i      => %s,\n' % (reg.fw_cnt_en_signal))
                     f.write ('        count_o   => %s\n'  % (reg.signal))
@@ -1237,13 +1106,13 @@ def updateModuleFile(module):
 
                 if reg.fw_rate_en_signal is not None:
                     f.write ("\n")
-                    f.write ('    RATE_CNT_%s : entity work.rate_counter\n' % (reg.getVhdlName()))
+                    f.write ('    RATE_CNT_%s : entity work.rate_counter\n' % (reg.get_vhdl_name()))
                     f.write ('    generic map (\n')
                     f.write ('        g_COUNTER_WIDTH      => %s,\n' % (reg.msb - reg.lsb + 1))
                     f.write ('        g_CLK_FREQUENCY      => %s,\n' % (reg.fw_rate_clk_frequency))
                     f.write ('    )\n')
                     f.write ('    port map (\n')
-                    f.write ('        clk_i                => %s,\n' % (module.userClock))
+                    f.write ('        clk_i                => %s,\n' % (module.user_clock))
                     f.write ('        reset_i              => %s,\n' % (reg.fw_rate_reset_signal))
                     f.write ('        en_i                 => %s,\n' % (reg.fw_rate_en_signal))
                     f.write ('        rate_o               => %s\n'  % (reg.signal))
@@ -1276,7 +1145,7 @@ def updateModuleFile(module):
                 if reg.default is not None:
                     if not uniqueAddresses.index(reg.address) in writableRegAddresses:
                         writableRegAddresses.append(uniqueAddresses.index(reg.address))
-                    f.write('    regs_defaults(%d)(%s) <= %s;\n' % (uniqueAddresses.index(reg.address), VHDL_REG_CONSTANT_PREFIX + reg.getVhdlName() + '_BIT' if isSingleBit else VHDL_REG_CONSTANT_PREFIX + reg.getVhdlName() + '_MSB' + ' downto ' + VHDL_REG_CONSTANT_PREFIX + reg.getVhdlName() + '_LSB', VHDL_REG_CONSTANT_PREFIX + reg.getVhdlName() + '_DEFAULT'))
+                    f.write('    regs_defaults(%d)(%s) <= %s;\n' % (uniqueAddresses.index(reg.address), VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_BIT' if isSingleBit else VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_MSB' + ' downto ' + VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_LSB', VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_DEFAULT'))
 
             f.write('\n')
 
@@ -1289,48 +1158,64 @@ def updateModuleFile(module):
             f.write('\n')
 
     f.close()
-    print((module.file).replace(".vhd",SUFFIX+".vhd"))
-    shutil.copy (tempname, (module.file).replace(".vhd",SUFFIX+".vhd"))
+    print((module.file_name).replace(".vhd",SUFFIX+".vhd"))
+    shutil.copy (tempname, (module.file_name).replace(".vhd",SUFFIX+".vhd"))
 
     if not signalSectionFound or not signalSectionDone:
-        print('--> ERROR <-- Could not find a signal section in the file.. Please include "' + VHDL_REG_SIGNAL_MARKER_START + '" and "' + VHDL_REG_SIGNAL_MARKER_END + '" comments denoting the area where the generated code will be inserted')
+        print('--> ERROR <-- Could not find a signal section in the file.. Please include "' \
+              + VHDL_REG_SIGNAL_MARKER_START + '" and "' + VHDL_REG_SIGNAL_MARKER_END \
+              + '" comments denoting the area where the generated code will be inserted')
         print('        e.g. someting like that would work and look nice:')
         print('        ' + VHDL_REG_SIGNAL_MARKER_START + ' ' + VHDL_REG_GENERATED_DISCLAIMER)
         print('        ' + VHDL_REG_SIGNAL_MARKER_END + ' ----------------------------------------------')
-        raise ValueError('No signal declaration markers found in %s -- see above' % module.file)
+        raise ValueError('No signal declaration markers found in %s -- see above' % module.file_name)
 
     if not slaveSectionFound or not slaveSectionDone:
-        print('--> ERROR <-- Could not find a slave section in the file.. Please include "' + VHDL_REG_SLAVE_MARKER_START + '" and "' + VHDL_REG_SLAVE_MARKER_END + '" comments denoting the area where the generated code will be inserted')
+        print('--> ERROR <-- Could not find a slave section in the file.. Please include "' \
+              + VHDL_REG_SLAVE_MARKER_START + '" and "' + VHDL_REG_SLAVE_MARKER_END \
+              + '" comments denoting the area where the generated code will be inserted')
         print('        e.g. someting like that would work and look nice:')
         print('        --===============================================================================================')
         print('        -- ' + VHDL_REG_GENERATED_DISCLAIMER)
         print('        ' + VHDL_REG_SLAVE_MARKER_START + ' ' + '==========================================================================')
         print('        ' + VHDL_REG_SLAVE_MARKER_END + ' ============================================================================')
-        raise ValueError('No slave markers found in %s -- see above' % module.file)
+        raise ValueError('No slave markers found in %s -- see above' % module.file_name)
 
     if not registersLibraryFound:
-        raise ValueError('Registers library not included in %s -- please add "use work.registers.all;"' % module.file)
-
+        raise ValueError('Registers library not included in %s -- \
+        please add "use work.registers.all;"' % module.file_name)
     if duplicateWritePulseError:
-        raise ValueError("Two or more write pulse signals in module %s are associated with the same register address (only one write pulse per reg address is allowed), more details are printed to the module file" % module.file)
+        raise ValueError("Two or more write pulse signals in module %s \
+        are associated with the same register address \
+        (only one write pulse per reg address is allowed), \
+        more details are printed to the module file" % module.file_name)
     if duplicateWriteDoneError:
-        raise ValueError("Two or more write done signals in module %s are associated with the same register address (only one write done signal per reg address is allowed), more details are printed to the module file" % module.file)
+        raise ValueError("Two or more write done signals in module %s \
+        are associated with the same register address \
+        (only one write done signal per reg address is allowed), \
+        more details are printed to the module file" % module.file_name)
     if duplicateReadPulseError:
-        raise ValueError("Two or more read pulse signals in module %s are associated with the same register address (only one read pulse per reg address is allowed), more details are printed to the module file" % module.file)
+        raise ValueError("Two or more read pulse signals in module %s \
+        are associated with the same register address \
+        (only one read pulse per reg address is allowed), \
+        more details are printed to the module file" % module.file_name)
     if duplicateReadReadyError:
-        raise ValueError("Two or more read ready signals in module %s are associated with the same register address (only one read ready signal per reg address is allowed), more details are printed to the module file" % module.file)
+        raise ValueError("Two or more read ready signals in module %s \
+        are associated with the same register address \
+        (only one read ready signal per reg address is allowed), \
+        more details are printed to the module file" % module.file_name)
 
 # returns the number of required 32 bit registers for this module -- basically it counts the number of registers with different addresses
-def getNumRequiredRegs32(module):
-    totalRegs32 = 0
+def get_num_required_regs32(module):
+    total_regs32 = 0
     if len(module.regs) > 0:
-        totalRegs32 = 1
-        lastAddress = module.regs[0].address
+        total_regs32 = 1
+        last_address = module.regs[0].address
         for reg in module.regs:
-            if reg.address != lastAddress:
-                totalRegs32 += 1
-                lastAddress = reg.address
-    return totalRegs32
+            if reg.address != last_address:
+                total_regs32 += 1
+                last_address = reg.address
+    return total_regs32
 
 def hex(number):
     if number is None:
@@ -1338,50 +1223,50 @@ def hex(number):
     else:
         return "{0:#0x}".format(number)
 
-def hexPadded32(number):
+def hex_padded32(number):
     if number is None:
         return 'None'
     else:
         return "{0:#0{1}x}".format(number, 10)
 
-def binaryPadded32(number):
+def binary_padded32(number):
     if number is None:
         return 'None'
     else:
         return "{0:#0{1}b}".format(number, 34)
 
-def vhdlHexPadded(number, numBits):
+def vhdl_hex_padded(number, num_bits):
     if number is None:
         return 'None'
     else:
-        hex32 = hexPadded32(number)
-        binary32 = binaryPadded32(number)
+        hex32 = hex_padded32(number)
+        binary32 = binary_padded32(number)
 
         ret = ''
 
         # if the number is not aligned with hex nibbles, add  some binary in front
-        numSingleBits = (numBits % 4)
-        if (numSingleBits != 0):
-            ret += "'" if numSingleBits == 1 else '"'
+        num_single_bits = (num_bits % 4)
+        if (num_single_bits != 0):
+            ret += "'" if num_single_bits == 1 else '"'
             # go back from the MSB down to the boundary of the most significant nibble
-            for i in range(numBits, numBits // 4 * 4, -1):
+            for i in range(num_bits, num_bits // 4 * 4, -1):
                 ret += binary32[i *  -1]
-            ret += "'" if numSingleBits == 1 else '"'
+            ret += "'" if num_single_bits == 1 else '"'
 
 
         # add the right amount of hex characters
 
-        if numBits // 4 > 0:
-            if (numSingleBits != 0):
+        if num_bits // 4 > 0:
+            if (num_single_bits != 0):
                 ret += ' & '
             ret += 'x"'
-            for i in range(numBits // 4, 0, -1):
+            for i in range(num_bits // 4, 0, -1):
                 ret += hex32[i * -1]
             ret += '"'
         return ret
 
 
-def parseInt(string):
+def parse_int(string):
     if string is None:
         return None
     elif string.startswith('0x'):
@@ -1391,55 +1276,57 @@ def parseInt(string):
     else:
         return int(string)
 
-def getLowHighFromBitmask(bitmask):
-    binary32 = binaryPadded32(bitmask)
+def get_low_high_from_bitmask(bitmask):
+    binary32 = binary_padded32(bitmask)
     lsb = -1
     msb = -1
-    rangeDone = False
+    range_done = False
     for i in range(1, 33):
         if binary32[i * -1] == '1':
-            if rangeDone == True:
-                raise ValueError('Non-continuous bitmasks are not supported: %s' % hexPadded32(bitmask))
+            if range_done == True:
+                raise ValueError('Non-continuous bitmasks are not supported: %s' % hex_padded32(bitmask))
             if lsb == -1:
                 lsb = i - 1
             msb = i - 1
         if lsb != -1 and binary32[i * -1] == '0':
-            if rangeDone == False:
-                rangeDone = True
+            if range_done == False:
+                range_done = True
     return msb, lsb
 
 
-def substituteVars(string, variables):
+def substitute_vars(string, variables):
     if string is None:
         return string
     ret = string
-    for varKey in variables.keys():
-        ret = ret.replace('${' + varKey + '}', str(variables[varKey]))
+    for key in variables.keys():
+        ret = ret.replace('${' + key + '}', str(variables[key]))
     return ret
 
-def processModule (name, node, module, modules, variables):
+def process_module (name, node, modules, variables):
     module = Module()
-    module.name = substituteVars(name, variables)
-    module.description = substituteVars(node.get('description'), variables)
-    module.baseAddress = parseInt(node.get('address'))
-    if node.get('fw_is_module_external') is not None and node.get('fw_is_module_external') == 'true':
-        module.isExternal = True
+    module.name = substitute_vars(name, variables)
+    module.description = substitute_vars(node.get('description'), variables)
+    module.base_address = parse_int(node.get('address'))
+    if node.get('fw_is_module_external') is not None \
+       and node.get('fw_is_module_external') == 'true':
+        module.is_external = True
     else:
-        module.regAddressMsb = parseInt(node.get('fw_reg_addr_msb'))
-        module.regAddressLsb = parseInt(node.get('fw_reg_addr_lsb'))
-        module.file = node.get('fw_module_file')
-        module.userClock = node.get('fw_user_clock_signal')
-        module.busClock = node.get('fw_bus_clock_signal')
-        module.busReset = node.get('fw_bus_reset_signal')
-        module.masterBus = node.get('fw_master_bus_signal')
-        module.slaveBus = node.get('fw_slave_bus_signal')
-    if not module.isValid():
-        error = 'One or more parameters for module ' + module.name + ' is missing... ' + module.toString()
+        module.reg_address_msb = parse_int(node.get('fw_reg_addr_msb'))
+        module.reg_address_lsb = parse_int(node.get('fw_reg_addr_lsb'))
+        module.file_name = node.get('fw_module_file')
+        module.user_clock = node.get('fw_user_clock_signal')
+        module.bus_clock = node.get('fw_bus_clock_signal')
+        module.bus_reset = node.get('fw_bus_reset_signal')
+        module.master_bus = node.get('fw_master_bus_signal')
+        module.slave_bus = node.get('fw_slave_bus_signal')
+    if not module.is_valid():
+        error = 'One or more parameters for module ' + \
+            module.name + ' is missing... ' + module.to_string()
         raise ValueError(error)
 
     # add a clone of the module as a parent node of that module
     parent                 = Register()
-    parent.name            = substituteVars(name, variables)
+    parent.name            = substitute_vars(name, variables)
     parent.name_raw        = name
     parent.description_raw = module.description
     parent.address         = 0
@@ -1449,14 +1336,17 @@ def processModule (name, node, module, modules, variables):
     parent.genvars         = {}
     parent.genstep         = {}
 
-    module.addParent(parent)
+    module.add_parent(parent)
 
     modules.append(module)
 
+    return module,modules
 
-def processRegister(name, node, module, modules, variables):
+
+def process_register(name, base_address, node, module, modules, variables):
+    address = base_address
     if node.get('address') is not None:
-        address = baseAddress + parseInt(node.get('address'))
+        address = base_address + parse_int(node.get('address'))
 
     # need some way to discriminate parent nodes from endpoints
     if ( node.get('fw_signal')              is not None or
@@ -1468,23 +1358,23 @@ def processRegister(name, node, module, modules, variables):
         and node.get('address')               is not None)
     ):
         reg = Register()
-        reg.name = substituteVars(name, variables)
+        reg.name = substitute_vars(name, variables)
         reg.name_raw = name
         reg.address = address
         reg.description_raw = node.get('description')
-        reg.description = substituteVars(node.get('description'), variables)
+        reg.description = substitute_vars(node.get('description'), variables)
         reg.permission = node.get('permission')
         if node.get('mask') is None:
             reg.mask = 0xffffffff; # default to full 32bit mask if not specified
         else:
-            reg.mask = parseInt(node.get('mask'))
-        msb, lsb = getLowHighFromBitmask(reg.mask)
+            reg.mask = parse_int(node.get('mask'))
+        msb, lsb = get_low_high_from_bitmask(reg.mask)
         reg.msb = msb
         reg.lsb = lsb
 
         global USED_REGISTER_SPACE
 
-        global_address = address + module.baseAddress
+        global_address = address + module.base_address
         if (global_address in USED_REGISTER_SPACE):
             if reg.permission == "rw" and (USED_REGISTER_SPACE[global_address] & reg.mask) != 0:
                 error = 'Register write conflict on %s at address 0x%X' % (reg.name, global_address)
@@ -1494,17 +1384,17 @@ def processRegister(name, node, module, modules, variables):
         else:
             USED_REGISTER_SPACE[global_address] = reg.mask
 
-        reg.default = parseInt(node.get('fw_default'))
+        reg.default = parse_int(node.get('fw_default'))
         if node.get('fw_signal') is not None:
-            reg.signal = substituteVars(node.get('fw_signal'), variables)
+            reg.signal = substitute_vars(node.get('fw_signal'), variables)
         if node.get('fw_write_pulse_signal') is not None:
-            reg.write_pulse_signal = substituteVars(node.get('fw_write_pulse_signal'), variables)
+            reg.write_pulse_signal = substitute_vars(node.get('fw_write_pulse_signal'), variables)
         if node.get('fw_write_done_signal') is not None:
-            reg.write_done_signal = substituteVars(node.get('fw_write_done_signal'), variables)
+            reg.write_done_signal = substitute_vars(node.get('fw_write_done_signal'), variables)
         if node.get('fw_read_pulse_signal') is not None:
-            reg.read_pulse_signal = substituteVars(node.get('fw_read_pulse_signal'), variables)
+            reg.read_pulse_signal = substitute_vars(node.get('fw_read_pulse_signal'), variables)
         if node.get('fw_read_ready_signal') is not None:
-            reg.read_ready_signal = substituteVars(node.get('fw_read_ready_signal'), variables)
+            reg.read_ready_signal = substitute_vars(node.get('fw_read_ready_signal'), variables)
 
 
         ################################################################################
@@ -1512,43 +1402,43 @@ def processRegister(name, node, module, modules, variables):
         ################################################################################
 
         if node.get('fw_cnt_en_signal') is not None:
-            reg.fw_cnt_en_signal = substituteVars (node.get('fw_cnt_en_signal'),variables)
+            reg.fw_cnt_en_signal = substitute_vars (node.get('fw_cnt_en_signal'),variables)
         if node.get('fw_cnt_reset_signal') is not None:
-            reg.fw_cnt_reset_signal = substituteVars (node.get('fw_cnt_reset_signal'),variables)
+            reg.fw_cnt_reset_signal = substitute_vars (node.get('fw_cnt_reset_signal'),variables)
         else:
-            reg.fw_cnt_reset_signal = module.busReset
+            reg.fw_cnt_reset_signal = module.bus_reset
         if node.get('fw_cnt_snap_signal') is not None:
-            reg.fw_cnt_snap_signal = substituteVars (node.get('fw_cnt_snap_signal'),variables)
+            reg.fw_cnt_snap_signal = substitute_vars (node.get('fw_cnt_snap_signal'),variables)
         if node.get('fw_cnt_allow_rollover_signal') is not None:
-            reg.fw_cnt_allow_rollover_signal = substituteVars (node.get('fw_cnt_allow_rollover_signal'),variables)
+            reg.fw_cnt_allow_rollover_signal = substitute_vars (node.get('fw_cnt_allow_rollover_signal'),variables)
         if node.get('fw_cnt_increment_step_signal') is not None:
-            reg.fw_cnt_increment_step_signal = substituteVars (node.get('fw_cnt_increment_step_signal'),variables)
+            reg.fw_cnt_increment_step_signal = substitute_vars (node.get('fw_cnt_increment_step_signal'),variables)
 
         ################################################################################
         # Rate Counter
         ################################################################################
 
         if node.get('fw_rate_reset_signal') is not None:
-            reg.fw_rate_reset_signal = substituteVars (node.get('fw_rate_reset_signal'),variables)
+            reg.fw_rate_reset_signal = substitute_vars (node.get('fw_rate_reset_signal'),variables)
         else:
-            reg.fw_rate_reset_signal = module.busReset
+            reg.fw_rate_reset_signal = module.bus_reset
 
         if node.get('fw_rate_log') is not None:
-            reg.fw_rate_log = substituteVars (node.get('fw_rate_log'),variables)
+            reg.fw_rate_log = substitute_vars (node.get('fw_rate_log'),variables)
         if node.get('fw_rate_en_signal') is not None:
-            reg.fw_rate_en_signal = substituteVars (node.get('fw_rate_en_signal'),variables)
+            reg.fw_rate_en_signal = substitute_vars (node.get('fw_rate_en_signal'),variables)
         if node.get('fw_rate_clk_frequency') is not None:
-            reg.fw_rate_clk_frequency = substituteVars (node.get('fw_rate_clk_frequency'),variables)
+            reg.fw_rate_clk_frequency = substitute_vars (node.get('fw_rate_clk_frequency'),variables)
         if node.get('fw_rate_inc_width') is not None:
-            reg.fw_rate_inc_width = substituteVars (node.get('fw_rate_inc_width'),variables)
+            reg.fw_rate_inc_width = substitute_vars (node.get('fw_rate_inc_width'),variables)
         if node.get('fw_rate_progress_bar_width') is not None:
-            reg.fw_rate_progress_bar_width = substituteVars (node.get('fw_rate_progress_bar_width'),variables)
+            reg.fw_rate_progress_bar_width = substitute_vars (node.get('fw_rate_progress_bar_width'),variables)
         if node.get('fw_rate_progress_bar_step') is not None:
-            reg.fw_rate_progress_bar_step = substituteVars (node.get('fw_rate_progress_bar_step'),variables)
+            reg.fw_rate_progress_bar_step = substitute_vars (node.get('fw_rate_progress_bar_step'),variables)
         if node.get('fw_rate_speedup') is not None:
-            reg.fw_rate_speedup = substituteVars (node.get('fw_rate_speedup'),variables)
+            reg.fw_rate_speedup = substitute_vars (node.get('fw_rate_speedup'),variables)
         if node.get('fw_rate_progress_bar_signal') is not None:
-            reg.fw_rate_progress_bar_signal = substituteVars (node.get('fw_rate_progress_bar_signal'),variables)
+            reg.fw_rate_progress_bar_signal = substitute_vars (node.get('fw_rate_progress_bar_signal'),variables)
 
         ################################################################################
         # Error
@@ -1556,44 +1446,44 @@ def processRegister(name, node, module, modules, variables):
 
         reg.gensize={}
         reg.genvars={}
-        for varKey in variables.keys():
-            if reg.name_raw.find("${" + varKey + "}") > 0:
-                reg.genvars [varKey] = variables[varKey]
-                reg.gensize [varKey] = variables[varKey + "_LOOP_SIZE"]
-                reg.genstep [varKey] = variables[varKey + "_STEP_SIZE"]
+        for key in variables.keys():
+            if reg.name_raw.find("${" + key + "}") > 0:
+                reg.genvars [key] = variables[key]
+                reg.gensize [key] = variables[key + "_LOOP_SIZE"]
+                reg.genstep [key] = variables[key + "_STEP_SIZE"]
 
         if module is None:
             error = 'Module is not set, cannot add register ' + reg.name
             raise ValueError(error)
-        if not reg.isValidReg(module.isExternal):
-            raise ValueError('One or more attributes for register %s are missing.. %s' % (reg.name, reg.toString()))
+        if not reg.is_valid_reg(module.is_external):
+            raise ValueError('One or more attributes for register %s are missing.. %s' % (reg.name, reg.to_string()))
 
-        module.addReg(reg)
+        module.add_reg(reg)
 
     elif (node.get('id') is not None):
 
         parent                 = Register()
-        parent.name            = substituteVars(name, variables)
+        parent.name            = substitute_vars(name, variables)
         parent.name_raw        = name
         parent.description_raw = node.get('description')
-        parent.description     = substituteVars(node.get('description'), variables)
+        parent.description     = substitute_vars(node.get('description'), variables)
 
         parent.gensize={}
         parent.genvars={}
         parent.genstep={}
 
-        for varKey in variables.keys():
-            if parent.name_raw.find("${" + varKey + "}") > 0:
+        for key in variables.keys():
+            if parent.name_raw.find("${" + key + "}") > 0:
 
-                parent.genvars [varKey] = variables[varKey]
-                parent.gensize [varKey] = variables[varKey + "_LOOP_SIZE"]
-                parent.genstep [varKey] = variables[varKey + "_STEP_SIZE"]
+                parent.genvars [key] = variables[key]
+                parent.gensize [key] = variables[key + "_LOOP_SIZE"]
+                parent.genstep [key] = variables[key + "_STEP_SIZE"]
 
         if (module is not None):
-            module.addParent(parent)
+            module.add_parent(parent)
+    return address, node, module, modules
 
 if __name__ == '__main__':
     #if sys.version_info[0] >= 3:
     #    raise Exception("Python 2 required.")
     main()
-
