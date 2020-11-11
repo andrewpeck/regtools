@@ -2,8 +2,8 @@
 from __future__ import unicode_literals
 from __future__ import print_function
 
-__author__ = 'evka'
-
+from write_latex import *
+from registers import *
 import io
 import xml.etree.ElementTree as xml
 import textwrap as tw
@@ -11,7 +11,7 @@ import argparse
 import sys
 import shutil
 import tempfile
-from insert_code import *
+from insert_code import insert_code
 
 VERBOSE                       =  False
 SUFFIX                        =  ''
@@ -55,144 +55,6 @@ VHDL_REG_SIGNAL_MARKER_END   = '------ Register signals end'
 
 VHDL_REG_SLAVE_MARKER_START = '--==== Registers begin'
 VHDL_REG_SLAVE_MARKER_END   = '--==== Registers end'
-
-class Module:
-    name = ''
-    description = ''
-    base_address = 0x0
-    reg_address_msb = None
-    reg_address_lsb = None
-    file_name = ''
-    user_clock = ''
-    bus_clock = ''
-    bus_reset = ''
-    fw_cnt_reset_signal = None
-    master_bus = ''
-    slave_bus = ''
-
-    # if this is true it means that firmware doesn't have to be modified,
-    # only bash scripts will be generated
-    is_external = False
-
-    def __init__(self):
-        """"""
-        self.regs    = []
-        self.parents = []
-
-    def add_reg(self, reg):
-        """"""
-        self.regs.append(reg)
-
-    def add_parent(self, parent):
-        """"""
-        self.parents.append(parent)
-
-    def is_valid(self):
-        """"""
-        if self.is_external:
-            return self.name is not None
-
-        return self.name is not None \
-            and self.file_name is not None \
-            and self.user_clock is not None \
-            and self.bus_clock is not None \
-            and self.bus_reset is not None \
-            and self.master_bus is not None \
-            and self.slave_bus is not None\
-            and self.reg_address_msb is not None \
-            and self.reg_address_lsb is not None
-
-    def to_string(self):
-        """"""
-        return str(self.name) + \
-            ' module: ' + str(self.description) + '\n'\
-            + '    Base address = ' + hex(self.base_address) + '\n'\
-            + '    Register address MSB = ' + hex(self.reg_address_msb) + '\n'\
-            + '    Register address LSB = ' + hex(self.reg_address_lsb) + '\n'\
-            + '    File = ' + str(self.file_name) + '\n'\
-            + '    User clock = ' + str(self.user_clock) + '\n'\
-            + '    Bus clock = ' + str(self.bus_clock) + '\n'\
-            + '    Bus reset = ' + str(self.bus_reset) + '\n'\
-            + '    Master_bus = ' + str(self.master_bus) + '\n'\
-            + '    Slave_bus = ' + str(self.slave_bus)
-
-    def get_vhdl_name(self):
-        """"""
-        return self.name.replace(TOP_NODE_NAME + '.', '').replace('.', '_')
-
-class Register:
-    """"""
-
-    name               = ''
-    name_raw           = ''
-    address            = 0x0
-    description        = ''
-    description_raw    = ''
-    permission         = ''
-    mask               = 0x0
-    signal             = None
-    write_pulse_signal = None
-    write_done_signal  = None
-    read_pulse_signal  = None
-    read_ready_signal  = None
-
-    genvars = {}
-    gensize = {}
-    genstep = {}
-
-    # count signals
-    fw_cnt_snap_signal    = '\'1\''
-    fw_cnt_allow_rollover = 'false'
-    fw_cnt_increment_step = '1'
-    fw_cnt_reset_signal   = None
-    fw_cnt_en_signal      = None
-
-    fw_rate_clk_frequency = 40079000 # clock frequency in Hz
-    fw_rate_reset_signal  = None     # Reset input
-    fw_rate_en_signal     = None     # Enable
-
-    default = 0x0
-    msb = -1
-    lsb = -1
-
-    def is_valid_reg(self, is_external = False):
-        """"""
-        if is_external:
-            return self.name is not None \
-                and self.address is not None \
-                and self.permission is not None\
-                and self.mask is not None
-        else:
-            return self.name is not None \
-                and self.address is not None \
-                and self.permission is not None\
-                and self.mask is not None \
-                and ((self.signal is not None and 'w' in self.permission) == (self.default is not None)) \
-                and (self.signal is not None or self.write_pulse_signal is not None or self.read_pulse_signal is not None)
-
-    def to_string(self):
-        ret = 'Register ' + str(self.name) + ': ' + str(self.description) + '\n'\
-              '    Address = ' + hex(self.address) + '\n'\
-              '    Mask = ' + hex_padded32(self.mask) + '\n'\
-              '    Permission = ' + str(self.permission) + '\n'\
-              '    Default value = ' + hex_padded32(self.default) + '\n'\
-
-        if self.signal is not None:
-            ret += '    Signal = ' + str(self.signal) + '\n'
-        if self.write_pulse_signal is not None:
-            ret += '    Write pulse signal = ' + str(self.write_pulse_signal) + '\n'
-        if self.write_done_signal is not None:
-            ret += '    Write done signal = ' + str(self.write_done_signal) + '\n'
-        if self.read_pulse_signal is not None:
-            ret += '    Read pulse signal = ' + str(self.read_pulse_signal) + '\n'
-        if self.read_ready_signal is not None:
-            ret += '    Read ready signal = ' + str(self.read_ready_signal) + '\n'
-
-        return ret
-
-    def get_vhdl_name(self):
-        """"""
-        return self.name.replace(TOP_NODE_NAME + '.', '').replace('.', '_')
 
 def main():
 
@@ -255,7 +117,7 @@ def main():
     global SUFFIX
 
     if args.suffix is not None:
-        SUFFIX = args.suffix;
+        SUFFIX = args.suffix
 
     ADDRESS_TABLE_TOP             = config['ADDRESS_TABLE_TOP']
     CONSTANTS_FILE                = config['CONSTANTS_FILE']
@@ -289,10 +151,10 @@ def main():
     write_constants_file(modules, CONSTANTS_FILE.replace(".vhd",SUFFIX+".vhd"))
 
     print('Writing documentation file to ' + DOC_FILE.replace(".tex",SUFFIX+".tex"))
-    write_docFile (modules, DOC_FILE)
+    write_latex_file (modules, DOC_FILE, SUFFIX)
 
     print('Writing org file to ' + DOC_FILE.replace(".org",SUFFIX+".org"))
-    writeOrgFile (modules, DOC_FILE.replace(".tex",".org"))
+    write_org_file (modules, DOC_FILE.replace(".tex",".org"))
 
     if PACKAGE_FILE!='':
         print('Writing package file to ' + PACKAGE_FILE)
@@ -348,7 +210,7 @@ def find_registers(node, base_name, base_address, modules, current_module, varia
     for child in node:
         find_registers(child, name, address, modules, module, variables, False, num_of_oh)
 
-def writeOrgFile (modules, filename):
+def write_org_file (modules, filename):
 
     def convert_newlines(string):
         if string is None:
@@ -391,7 +253,7 @@ def writeOrgFile (modules, filename):
     def write_reg_entry (f, endpoint_name, address, bithi, bitlo, permission, default, description):
 
         if default!="Pulsed":
-            if (permission!="r"):
+            if permission!="r":
                 default = ("~%s~" % default)
         else:
             default="Pulse"
@@ -442,9 +304,9 @@ def writeOrgFile (modules, filename):
                 is_first_in_loop = 1
                 reg_unrolling_is_supressed = 0
                 for key in reg.genvars.keys():
-                    if (key == "GBT_IDX" or key == "OH_IDX" or key == "VFAT_IDX" or key == "CHANNEL_IDX"):
+                    if key in ("GBT_IDX", "OH_IDX", "VFAT_IDX", "CHANNEL_IDX"):
                         reg_unrolling_is_supressed = 1
-                        if (reg.genvars[key] > 0):
+                        if reg.genvars[key] > 0:
                             is_first_in_loop = 0
 
                 if is_first_in_loop == 0:
@@ -463,11 +325,11 @@ def writeOrgFile (modules, filename):
 
                 for i in range (len(name_split)-1):
                     name_of_parent_node = name_of_parent_node + name_split[i]
-                    if (i!=(len(name_split)-2)):
+                    if i!=(len(name_split)-2):
                         name_of_parent_node = name_of_parent_node + "."
 
                 # find the parent module
-                reg_parent = Register()
+                reg_parent = Register(TOP_NODE_NAME)
                 parent_found = 0
                 for parent in module.parents:
                     if name_of_parent_node==parent.name_raw:
@@ -477,13 +339,13 @@ def writeOrgFile (modules, filename):
                 # error if we can't find the parent
 
                 if not parent_found:
-                    raise ValueError("Somethings wrong... parent not found for node %s" % name);
+                    raise ValueError("Somethings wrong... parent not found for node %s" % name)
 
                 # write a header if this is a new parent
 
-                if (name_of_parent_node != name_of_last_parent_node):
+                if name_of_parent_node != name_of_last_parent_node:
 
-                    if (not reg_is_first_in_parent):
+                    if not reg_is_first_in_parent:
                         write_end_of_table(f)
 
                     reg_is_first_in_parent = 0
@@ -494,11 +356,11 @@ def writeOrgFile (modules, filename):
                     write_parent_name (f, substitute_vars(reg_parent.name_raw, variables))
 
                     # If parent has a description, write it
-                    if (reg_parent.description!="" and reg_parent.description!=None):
+                    if reg_parent.description!="" and reg_parent.description is not None:
                         write_parent_description (f, substitute_vars(reg_parent.description_raw, variables))
 
                     # If parent is a generator, record generation properties
-                    if (len(reg_parent.genvars)>0):
+                    if len(reg_parent.genvars)>0:
                         write_parent_generators (f, reg_parent)
 
                     # write the reg table preampble
@@ -508,16 +370,16 @@ def writeOrgFile (modules, filename):
 
                 reg_default=""
 
-                if (reg.default!=None):
-                    if (reg.default==-1):
+                if reg.default is not None:
+                    if reg.default==-1:
                         reg_default = ""
                     else:
                         reg_default = "0x%X" % reg.default
-                if reg.write_pulse_signal!=None:
+                if reg.write_pulse_signal is not None:
                     reg_default = "Pulsed"
 
                 description=""
-                if (reg_unrolling_is_supressed ):
+                if reg_unrolling_is_supressed:
                     description=substitute_vars(reg.description_raw,variables)
                 else:
                     description=reg.description
@@ -537,216 +399,6 @@ def writeOrgFile (modules, filename):
     outfile = filename.replace(".org",SUFFIX+".org")
     insert_code (filename, outfile, MARKER_START, MARKER_END, write_doc)
 
-def write_docFile (modules, filename):
-
-    def latexify(string):
-        if string is None:
-            string=""
-        return string.replace('\\\\','\\\\\\\\').replace('&','\&').replace('%','\%').replace('$','\$').replace('#','\#').replace('_','\_').replace('{','\{').replace('}','\}').replace('~','\~').replace('^','\^')
-
-    def convert_newlines(string):
-        if string is None:
-            string=""
-        return string.replace('\\n','\\\\ & & & & &')
-
-    def write_module_name_latex (f, module):
-        padding = "    "
-        module_name = module.name
-        f.write ('\n')
-        f.write ('%s\pagebreak\n' % (padding))
-        f.write ('%s\\section{Module: %s \\hfill \\texttt{0x%x}}\n' % (padding, latexify(module_name), module.base_address))
-        f.write ('\n')
-        f.write ('%s%s\\\\\n' % (padding, latexify(module.description)))
-        f.write ('\n')
-        f.write ('%s\\renewcommand{\\arraystretch}{1.3}\n' % (padding))
-
-    def write_end_of_table_latex (f):
-        padding = "    "
-        f.write('%s\\end{tabularx}\n' % (padding))
-        f.write('%s\\vspace{5mm}\n' % (padding))
-        f.write('\n\n')
-
-    def write_parent_name_latex (f, parent_name):
-        padding = "    "
-        f.write('%s\\noindent\n' % (padding))
-        f.write('%s\\subsection*{\\textcolor{parentcolor}{\\textbf{%s}}}\n' % (padding, latexify(parent_name)))
-        f.write ('\n')
-
-    def write_parent_description_latex (f, parent_description):
-        padding = "    "
-        f.write('%s\\vspace{4mm}\n' % (padding))
-        f.write('%s\\noindent\n' % (padding))
-        f.write('%s%s\n' % (padding, latexify(parent_description)))
-        f.write('%s\\noindent\n' % (padding))
-        f.write('\n')
-
-    def write_parent_generators_latex (f, parent):
-
-        def idx_to_xyz (idx):
-            return idx.replace('GBT_IDX','GBT{N}').replace('OH_IDX','OH{X}').replace('VFAT_IDX','VFAT{Y}').replace('CHANNEL_IDX','CHANNEL{Z}')
-
-        padding = "    "
-        f.write ('%s\\noindent\n' % (padding) )
-        f.write ('%s\\keepXColumns\n' % (padding))
-        f.write ('%s\\begin{tabularx}{\\linewidth}{  l  l  l  r   X }\n' % (padding))
-        for key in parent.genvars.keys():
-            f.write('%sGenerated range of & %s & is & \\texttt{[%d:0]} & adr\_step=0x%X (%d) \\\\ \n' % (padding,  latexify(idx_to_xyz(key)), parent.gensize[key]-1, parent.genstep[key], parent.genstep[key]))
-        f.write('%s\\end{tabularx}\n' % (padding))
-
-    def write_start_of_reg_table_latex (f):
-        padding = "    "
-        f.write ('%s\\keepXColumns\n' % (padding))
-        f.write ('%s\\begin{tabularx}{\\linewidth}{ | l | l | r | c | l | X | }\n' % (padding))
-        f.write('%s\\hline\n' % (padding))
-        f.write('%s\\textbf{Node} & \\textbf{Adr} & \\textbf{Bits} & \\textbf{Perm} & \\textbf{Def} & \\textbf{Description} \\\\\\hline\n' % (padding))
-        f.write('%s\\nopagebreak\n' % (padding))
-
-    def write_reg_entry_latex (f, endpoint_name, address, bithi, bitlo, permission, default, description):
-
-        padding = "    "
-        if (default!="Pulsed"):
-            default = "\\texttt{%s}" % default
-        else:
-            default="Pulse"
-
-        f.write('%s%s & \\texttt{0x%x} & \\texttt{[%d:%d]} & %s & %s & %s \\\\\hline\n' % (padding,latexify(endpoint_name), address, bithi, bitlo, permission, default, convert_newlines(latexify(description))))
-
-    def write_doc (filename):
-
-        f = filename
-
-        padding = "    "
-
-
-        for module in modules:
-
-            print ("    > writing documentation for " + module.name)
-            ################################################################################
-            # Nodes to skip from documentation
-            ################################################################################
-
-            if module.name=="GEM_AMC.GLIB_SYSTEM":
-                continue
-
-            ################################################################################
-            # Write module name
-            ################################################################################
-
-            write_module_name_latex (f, module)
-
-            ################################################################################
-
-            # only want to write the table header and parent name once
-            name_of_last_parent_node = ""
-
-            ################################################################################
-            # Loop over registers
-            ################################################################################
-
-            reg_is_first_in_parent = 1
-
-            for reg in module.regs:
-
-                # Only want to document the first instance in a loop of OH, VFAT, or Channel
-                # allow other loops to unroll...
-
-                is_first_in_loop = 1
-                reg_unrolling_is_supressed = 0
-                for key in reg.genvars.keys():
-                    if (key == "GBT_IDX" or key == "OH_IDX" or key == "VFAT_IDX" or key == "CHANNEL_IDX"):
-                        reg_unrolling_is_supressed = 1
-                        if (reg.genvars[key] > 0):
-                            is_first_in_loop = 0
-
-                if (is_first_in_loop == 0):
-                    continue
-
-                name          = reg.name
-                name_split    = reg.name_raw.split('.')
-                address       = reg.address + module.base_address
-
-
-                endpoint_name = reg.name.split('.')[-1]
-
-                name_of_parent_node = ""
-
-                # find the name of the current node's parent
-
-                for i in range (len(name_split)-1):
-                    name_of_parent_node = name_of_parent_node + name_split[i]
-                    if (i!=(len(name_split)-2)):
-                        name_of_parent_node = name_of_parent_node + "."
-
-                # find the parent module
-                reg_parent = Register()
-                parent_found = 0
-                for parent in module.parents:
-                    if name_of_parent_node==parent.name_raw:
-                        reg_parent=parent
-                        parent_found = 1
-
-                # error if we can't find the parent
-
-                if (not parent_found):
-                    raise ValueError("Somethings wrong... parent not found for node %s" % name);
-
-                # write a header if this is a new parent
-
-                if (name_of_parent_node != name_of_last_parent_node):
-
-                    if (not reg_is_first_in_parent):
-                        write_end_of_table_latex(f)
-
-                    reg_is_first_in_parent = 0
-
-                    variables = { 'GBT_IDX' : '{N}' , 'OH_IDX' : '{X}' , 'VFAT_IDX' : '{Y}', 'CHANNEL_IDX' : '{Z}' }
-
-                    # Write name of parent node
-                    write_parent_name_latex (f, substitute_vars(reg_parent.name_raw, variables))
-
-                    # If parent has a description, write it
-                    if (reg_parent.description!="" and reg_parent.description!=None):
-                        write_parent_description_latex (f, substitute_vars(reg_parent.description_raw, variables))
-
-                    # If parent is a generator, record generation properties
-                    if (len(reg_parent.genvars)>0):
-                        write_parent_generators_latex (f, reg_parent)
-
-                    # write the reg table preampble
-                    write_start_of_reg_table_latex (f)
-
-                name_of_last_parent_node = name_of_parent_node
-
-                reg_default=""
-
-                if (reg.default!=None):
-                    if (reg.default==-1):
-                        reg_default = ""
-                    else:
-                        reg_default = "0x%X" % reg.default
-                if (reg.write_pulse_signal!=None):
-                    reg_default = "Pulsed"
-
-                description=""
-                if (reg_unrolling_is_supressed ):
-                    description=substitute_vars(reg.description_raw,variables)
-                else:
-                    description=reg.description
-
-                # write register entry
-                write_reg_entry_latex (f, endpoint_name, address, reg.msb, reg.lsb, reg.permission, reg_default, description)
-
-            # end of table
-
-            write_end_of_table_latex (f)
-
-        print ("    > finished writing all documentation...")
-
-    MARKER_START = "% START: ADDRESS_TABLE :: DO NOT EDIT"
-    MARKER_END   = "% END: ADDRESS_TABLE :: DO NOT EDIT"
-
-    outfile = filename.replace(".tex",SUFFIX+".tex")
-    insert_code (filename, outfile, MARKER_START, MARKER_END, write_doc)
 
 def write_package_file (modules, filename):
 
@@ -771,7 +423,7 @@ def write_package_file (modules, filename):
         for module in modules:
             if module.is_external:
                 continue
-            if (imodule != 0):
+            if imodule != 0:
                 f.write(',\n')
             f.write('%s    %15s  => %d'                 % (padding, module.get_vhdl_name(), imodule))
             imodule = imodule + 1
@@ -788,7 +440,7 @@ def write_package_file (modules, filename):
 
         for module in modules:
 
-            if (imodule==0):
+            if imodule==0:
                 start = "if   "
             else:
                 start = "elsif"
@@ -824,7 +476,7 @@ def write_constants_file(modules, filename):
         # check if we have enough address bits for the max reg address (recall that the reg list is sorted by address)
         topAddressBinary = "{0:#0b}".format(module.regs[-1].address)
         numAddressBitsNeeded = len(topAddressBinary) - 2
-        if (VERBOSE):
+        if VERBOSE:
             print('    > Top address of the module ' + module.get_vhdl_name() + ' is ' + hex(module.regs[-1].address) + ' (' + topAddressBinary + '), need ' + str(numAddressBitsNeeded) + ' bits and have ' + str(module.reg_address_msb - module.reg_address_lsb + 1) + ' bits available')
         if numAddressBitsNeeded > module.reg_address_msb - module.reg_address_lsb + 1:
             raise ValueError('There is not enough bits in the module address space to accomodate all registers (see above for details). Please modify fw_reg_addr_msb and/or fw_reg_addr_lsb attributes in the xml file')
@@ -856,7 +508,7 @@ def write_constants_file(modules, filename):
                             'integer := ' + str(reg.msb) + ';\n')
                 f.write('    constant ' + VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_LSB     : '\
                             'integer := ' + str(reg.lsb) + ';\n')
-            if (reg.default==-1):
+            if reg.default==-1:
                 f.write('  --constant ' + VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_DEFAULT should be supplied externally\n')
             elif reg.default is not None and reg.msb - reg.lsb > 0:
                 f.write('    constant ' + VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_DEFAULT : '\
@@ -905,10 +557,10 @@ def update_module_file(module):
         # if we're outside of business of writing the special sections, then just repeat the lines we read from the original file
         if (not signal_section_found or signal_section_done) and (not slave_section_found or slave_section_done):
             f.write(line)
-        elif (signal_section_found and not signal_section_done and VHDL_REG_SIGNAL_MARKER_END in line):
+        elif signal_section_found and not signal_section_done and VHDL_REG_SIGNAL_MARKER_END in line:
             signal_section_done = True
             f.write(line)
-        elif (slave_section_found and not slave_section_done and VHDL_REG_SLAVE_MARKER_END in line):
+        elif slave_section_found and not slave_section_done and VHDL_REG_SLAVE_MARKER_END in line:
             slave_section_done = True
             f.write(line)
 
@@ -931,7 +583,7 @@ def update_module_file(module):
             header_written = False;
             for reg in module.regs:
                 if reg.fw_cnt_en_signal is not None and reg.signal is not None:
-                    if (not header_written):
+                    if not header_written:
                         f.write('    -- Connect counter signal declarations\n')
                         header_written = True;
                     f.write ('    signal %s : std_logic_vector (%s downto 0) := (others => \'0\');\n' % (reg.signal,  reg.msb-reg.lsb))
@@ -939,7 +591,7 @@ def update_module_file(module):
             header_written = False;
             for reg in module.regs:
                 if reg.fw_rate_en_signal is not None and reg.signal is not None:
-                    if (not header_written):
+                    if not header_written:
                         f.write('    -- Connect rate signal declarations\n')
                         header_written = True;
                     f.write ('    signal %s : std_logic_vector (%s downto 0) := (others => \'0\');\n' % (reg.signal,  reg.msb-reg.lsb))
@@ -1067,9 +719,9 @@ def update_module_file(module):
                     f.write ("\n")
                     f.write ('    COUNTER_%s : entity work.counter_snap\n' % (reg.get_vhdl_name()))
                     f.write ('    generic map (\n')
-                    if (reg.fw_cnt_increment_step!='1'):
+                    if reg.fw_cnt_increment_step!='1':
                         f.write ('        g_INCREMENT_STEP => %s,\n' % (reg.fw_cnt_increment_step))
-                    if (reg.fw_cnt_allow_rollover!='false'):
+                    if reg.fw_cnt_allow_rollover!='false':
                         f.write ('        g_ALLOW_ROLLOVER => %s,\n' % (reg.fw_cnt_allow_rollover))
                     f.write ('        g_COUNTER_WIDTH  => %s\n' % (reg.msb - reg.lsb + 1))
                     f.write ('    )\n')
@@ -1087,9 +739,9 @@ def update_module_file(module):
                     f.write ("\n")
                     f.write ('    COUNTER_%s : entity work.counter\n' % (reg.get_vhdl_name()))
                     f.write ('    generic map (\n')
-                    if (reg.fw_cnt_increment_step!='1'):
+                    if reg.fw_cnt_increment_step!='1':
                         f.write ('        g_INCREMENT_STEP => %s,\n' % (reg.fw_cnt_increment_step))
-                    if (reg.fw_cnt_allow_rollover!='false'):
+                    if reg.fw_cnt_allow_rollover!='false':
                         f.write ('        g_ALLOW_ROLLOVER => %s,\n' % (reg.fw_cnt_allow_rollover))
                     f.write ('        g_COUNTER_WIDTH  => %s\n' % (reg.msb - reg.lsb + 1))
                     f.write ('    )\n')
@@ -1157,7 +809,7 @@ def update_module_file(module):
                     if not uniqueAddresses.index(reg.address) in writable_reg_addresses:
                         writable_reg_addresses.append(uniqueAddresses.index(reg.address))
 
-                    if (is_single_bit):
+                    if is_single_bit:
                         bit_suffix = '_BIT'
                     else:
                         bit_suffix = '_MSB' + ' downto ' + VHDL_REG_CONSTANT_PREFIX \
@@ -1226,105 +878,9 @@ def update_module_file(module):
         (only one read ready signal per reg address is allowed), \
         more details are printed to the module file" % module.file_name)
 
-# returns the number of required 32 bit registers for this module -- basically it counts the number of registers with different addresses
-def get_num_required_regs32(module):
-    total_regs32 = 0
-    if len(module.regs) > 0:
-        total_regs32 = 1
-        last_address = module.regs[0].address
-        for reg in module.regs:
-            if reg.address != last_address:
-                total_regs32 += 1
-                last_address = reg.address
-    return total_regs32
-
-def hex(number):
-    if number is None:
-        return 'None'
-    else:
-        return "{0:#0x}".format(number)
-
-def hex_padded32(number):
-    if number is None:
-        return 'None'
-    else:
-        return "{0:#0{1}x}".format(number, 10)
-
-def binary_padded32(number):
-    if number is None:
-        return 'None'
-    else:
-        return "{0:#0{1}b}".format(number, 34)
-
-def vhdl_hex_padded(number, num_bits):
-    if number is None:
-        return 'None'
-    else:
-        hex32 = hex_padded32(number)
-        binary32 = binary_padded32(number)
-
-        ret = ''
-
-        # if the number is not aligned with hex nibbles, add  some binary in front
-        num_single_bits = (num_bits % 4)
-        if (num_single_bits != 0):
-            ret += "'" if num_single_bits == 1 else '"'
-            # go back from the MSB down to the boundary of the most significant nibble
-            for i in range(num_bits, num_bits // 4 * 4, -1):
-                ret += binary32[i *  -1]
-            ret += "'" if num_single_bits == 1 else '"'
-
-
-        # add the right amount of hex characters
-
-        if num_bits // 4 > 0:
-            if (num_single_bits != 0):
-                ret += ' & '
-            ret += 'x"'
-            for i in range(num_bits // 4, 0, -1):
-                ret += hex32[i * -1]
-            ret += '"'
-        return ret
-
-
-def parse_int(string):
-    if string is None:
-        return None
-    elif string.startswith('0x'):
-        return int(string, 16)
-    elif string.startswith('0b'):
-        return int(string, 2)
-    else:
-        return int(string)
-
-def get_low_high_from_bitmask(bitmask):
-    binary32 = binary_padded32(bitmask)
-    lsb = -1
-    msb = -1
-    range_done = False
-    for i in range(1, 33):
-        if binary32[i * -1] == '1':
-            if range_done == True:
-                raise ValueError('Non-continuous bitmasks are not supported: %s' % hex_padded32(bitmask))
-            if lsb == -1:
-                lsb = i - 1
-            msb = i - 1
-        if lsb != -1 and binary32[i * -1] == '0':
-            if range_done == False:
-                range_done = True
-    return msb, lsb
-
-
-def substitute_vars(string, variables):
-    if string is None:
-        return string
-    ret = string
-    for key in variables.keys():
-        ret = ret.replace('${' + key + '}', str(variables[key]))
-    return ret
 
 def process_module (name, node, modules, variables):
-    module = Module()
+    module = Module(TOP_NODE_NAME)
     module.name = substitute_vars(name, variables)
     module.description = substitute_vars(node.get('description'), variables)
     module.base_address = parse_int(node.get('address'))
@@ -1346,7 +902,7 @@ def process_module (name, node, modules, variables):
         raise ValueError(error)
 
     # add a clone of the module as a parent node of that module
-    parent                 = Register()
+    parent                 = Register(TOP_NODE_NAME)
     parent.name            = substitute_vars(name, variables)
     parent.name_raw        = name
     parent.description_raw = module.description
@@ -1370,15 +926,14 @@ def process_register(name, base_address, node, module, modules, variables):
         address = base_address + parse_int(node.get('address'))
 
     # need some way to discriminate parent nodes from endpoints
-    if ( node.get('fw_signal')              is not None or
+    if  (node.get('fw_signal')              is not None or
         ((node.get('permission')             is not None
         or node.get('mask')                   is not None
         or node.get ('fw_write_pulse_signal') is not None)
         and node.get('generate_size')         is     None
         and node.get('generate')              is     None
-        and node.get('address')               is not None)
-    ):
-        reg = Register()
+        and node.get('address')               is not None)):
+        reg = Register(TOP_NODE_NAME)
         reg.name = substitute_vars(name, variables)
         reg.name_raw = name
         reg.address = address
@@ -1483,7 +1038,7 @@ def process_register(name, base_address, node, module, modules, variables):
 
     elif (node.get('id') is not None):
 
-        parent                 = Register()
+        parent                 = Register(TOP_NODE_NAME)
         parent.name            = substitute_vars(name, variables)
         parent.name_raw        = name
         parent.description_raw = node.get('description')
