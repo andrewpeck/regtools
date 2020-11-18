@@ -160,11 +160,8 @@ def find_registers(node, base_name, base_address, modules, current_module, varia
         generate_idx_var = node.get('generate_idx_var')
 
         for i in range(0, generate_size):
-
             variables[generate_idx_var] = i
             variables[generate_idx_var + "_STEP_SIZE"] = generate_address_step
-            #print('generate base_addr = ' + hex(base_address + generate_address_step * i) + ' for node ' + node.get('id'))
-
             find_registers(node, base_name, base_address + generate_address_step * i, \
                           modules, current_module, variables, True, num_of_oh)
         return
@@ -192,6 +189,7 @@ def find_registers(node, base_name, base_address, modules, current_module, varia
 
 
 def write_constants_file(modules, filename):
+    """"""
     f = io.open (filename, "w", newline='')
     f.write('library IEEE;\n'\
             'use IEEE.STD_LOGIC_1164.all;\n\n')
@@ -204,12 +202,13 @@ def write_constants_file(modules, filename):
 
         total_regs32 = get_num_required_regs32(module)
 
-        # check if we have enough address bits for the max reg address (recall that the reg list is sorted by address)
-        topAddressBinary = "{0:#0b}".format(module.regs[-1].address)
-        numAddressBitsNeeded = len(topAddressBinary) - 2
+        # check if we have enough address bits for the max reg address
+        # (recall that the reg list is sorted by address)
+        top_address_binary = "{0:#0b}".format(module.regs[-1].address)
+        num_address_bits_needed = len(top_address_binary) - 2
         if VERBOSE:
-            print('    > Top address of the module ' + module.get_vhdl_name() + ' is ' + hex(module.regs[-1].address) + ' (' + topAddressBinary + '), need ' + str(numAddressBitsNeeded) + ' bits and have ' + str(module.reg_address_msb - module.reg_address_lsb + 1) + ' bits available')
-        if numAddressBitsNeeded > module.reg_address_msb - module.reg_address_lsb + 1:
+            print('    > Top address of the module ' + module.get_vhdl_name() + ' is ' + hex(module.regs[-1].address) + ' (' + top_address_binary + '), need ' + str(num_address_bits_needed) + ' bits and have ' + str(module.reg_address_msb - module.reg_address_lsb + 1) + ' bits available')
+        if num_address_bits_needed > module.reg_address_msb - module.reg_address_lsb + 1:
             raise ValueError('There is not enough bits in the module address space to accomodate all registers (see above for details). Please modify fw_reg_addr_msb and/or fw_reg_addr_lsb attributes in the xml file')
 
 
@@ -224,10 +223,11 @@ def write_constants_file(modules, filename):
         f.write('    constant ' + VHDL_REG_CONSTANT_PREFIX + module.get_vhdl_name() + '_NUM_REGS : integer := ' + str(total_regs32) + ';\n')
         f.write('    constant ' + VHDL_REG_CONSTANT_PREFIX + module.get_vhdl_name() + '_ADDRESS_MSB : integer := ' + str(module.reg_address_msb) + ';\n')
         f.write('    constant ' + VHDL_REG_CONSTANT_PREFIX + module.get_vhdl_name() + '_ADDRESS_LSB : integer := ' + str(module.reg_address_lsb) + ';\n')
-        #f.write('    type T_' + VHDL_REG_CONSTANT_PREFIX + module.get_vhdl_name() + '_ADDRESS_ARR is array(integer range <>) of std_logic_vector(%s downto %s);\n\n' % (VHDL_REG_CONSTANT_PREFIX + module.get_vhdl_name() + '_ADDRESS_MSB', VHDL_REG_CONSTANT_PREFIX + module.get_vhdl_name() + '_ADDRESS_LSB')) # cannot use that because we need to be able to pass it as a generic type to the generic IPBus slave module
 
         for reg in module.regs:
-            #print('Writing register constants for ' + reg.name)
+
+            if (VERBOSE):
+                print('Writing register constants for ' + reg.name)
             f.write('    constant ' + VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_ADDR    : '\
                         'std_logic_vector(' + str(module.reg_address_msb) + ' downto ' + str(module.reg_address_lsb) + ') := ' + \
                         vhdl_hex_padded(reg.address, module.reg_address_msb - module.reg_address_lsb + 1)  + ';\n')
@@ -278,12 +278,16 @@ def update_module_file(module):
     signal_section_done = False
     slave_section_found = False
     slave_section_done = False
-    registersLibraryFound = False
+    registers_library_found = False
+
     for line in lines:
+
+        #python2 compatibility
         if sys.version_info[0] < 3:
             line = unicode(line)
+
         if line.startswith('use work.registers.all;'):
-            registersLibraryFound = True
+            registers_library_found = True
 
         # if we're outside of business of writing the special sections, then just repeat the lines we read from the original file
         if (not signal_section_found or signal_section_done) and (not slave_section_found or slave_section_done):
@@ -298,7 +302,7 @@ def update_module_file(module):
         # signal section
         if VHDL_REG_SIGNAL_MARKER_START in line:
             signal_section_found = True
-            signalDeclaration         = "    signal regs_read_arr        : t_std32_array(<num_regs> - 1 downto 0) := (others => (others => '0'));\n"\
+            signal_declaration        = "    signal regs_read_arr        : t_std32_array(<num_regs> - 1 downto 0) := (others => (others => '0'));\n"\
                                         "    signal regs_write_arr       : t_std32_array(<num_regs> - 1 downto 0) := (others => (others => '0'));\n"\
                                         "    signal regs_addresses       : t_std32_array(<num_regs> - 1 downto 0) := (others => (others => '0'));\n"\
                                         "    signal regs_defaults        : t_std32_array(<num_regs> - 1 downto 0) := (others => (others => '0'));\n"\
@@ -307,8 +311,8 @@ def update_module_file(module):
                                         "    signal regs_read_ready_arr  : std_logic_vector(<num_regs> - 1 downto 0) := (others => '1');\n" \
                                         "    signal regs_write_done_arr  : std_logic_vector(<num_regs> - 1 downto 0) := (others => '1');\n" \
                                         "    signal regs_writable_arr    : std_logic_vector(<num_regs> - 1 downto 0) := (others => '0');\n"
-            signalDeclaration = signalDeclaration.replace('<num_regs>', VHDL_REG_CONSTANT_PREFIX + module.get_vhdl_name() + '_NUM_REGS')
-            f.write(signalDeclaration)
+            signal_declaration = signal_declaration.replace('<num_regs>', VHDL_REG_CONSTANT_PREFIX + module.get_vhdl_name() + '_NUM_REGS')
+            f.write(signal_declaration)
 
             # connect counter en signal declarations
             header_written = False;
@@ -585,7 +589,7 @@ def update_module_file(module):
         print('        ' + VHDL_REG_SLAVE_MARKER_END + ' ============================================================================')
         raise ValueError('No slave markers found in %s -- see above' % module.file_name)
 
-    if not registersLibraryFound:
+    if not registers_library_found:
         raise ValueError('Registers library not included in %s -- \
         please add "use work.registers.all;"' % module.file_name)
     if duplicate_write_pulse_error:
