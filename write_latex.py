@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from insert_code import insert_code
-from registers import *
+from utils import *
 
 def write_latex_file (modules, filename, SUFFIX):
 

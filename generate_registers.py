@@ -4,7 +4,7 @@ from __future__ import print_function
 
 from write_latex import *
 from write_orgmode import *
-from registers import *
+from utils import *
 import io
 import xml.etree.ElementTree as xml
 import textwrap as tw
