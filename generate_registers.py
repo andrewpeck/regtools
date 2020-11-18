@@ -275,8 +275,7 @@ def update_module_file(module):
             if line.startswith('use work.registers.all;'):
                 return True
         raise ValueError('Registers library not included in %s -- \
-        please add "use work.registers.all;"' % module.file_name)
-        return False
+            please add "use work.registers.all;"' % module.file_name)
 
     def write_signals (filename):
         signal_declaration        = "    signal regs_read_arr        : t_std32_array(<num_regs> - 1 downto 0) := (others => (others => '0'));\n"\
