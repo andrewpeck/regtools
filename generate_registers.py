@@ -343,11 +343,19 @@ def update_module_file(module):
             if not reg.address in unique_addresses:
                 unique_addresses.append(reg.address)
         if len(unique_addresses) != total_regs32:
-            raise ValueError("Something's wrong.. Got a list of unique addresses which is of different length than the total number of 32bit addresses previously calculated..");
+            raise ValueError("Something's wrong.. Got a list of unique addresses which \
+            is of different length than the total number of 32bit addresses previously calculated..");
 
         f.write('    -- Addresses\n')
         for i in range(0, total_regs32):
-            f.write('    regs_addresses(%d)(%s downto %s) <= %s;\n' % (i, VHDL_REG_CONSTANT_PREFIX + module.get_vhdl_name() + '_ADDRESS_MSB', VHDL_REG_CONSTANT_PREFIX + module.get_vhdl_name() + '_ADDRESS_LSB', vhdl_hex_padded(unique_addresses[i], module.reg_address_msb - module.reg_address_lsb + 1))) # TODO: this is a hack using literal values - you should sort it out in the future and use constants (the thing is that the register address constants are not good for this since there are more of them than there are 32bit registers, so you need a constant for each group of regs that go to the same 32bit reg)
+            # TODO: this is a hack using literal values - you should sort it out in the future and
+            # use constants (the thing is that the register address constants are not good for this
+            # since there are more of them than there are 32bit registers, so you need a constant
+            # for each group of regs that go to the same 32bit reg)
+            bit_high = VHDL_REG_CONSTANT_PREFIX + module.get_vhdl_name() + "_ADDRESS_MSB"
+            bit_lo = VHDL_REG_CONSTANT_PREFIX + module.get_vhdl_name() + "_ADDRESS_LSB"
+            vhdl_adr = vhdl_hex_padded(unique_addresses[i], module.reg_address_msb - module.reg_address_lsb + 1)
+            f.write('    regs_addresses(%d)(%s downto %s) <= %s;\n' % (i, bit_high, bit_lo, vhdl_adr))
         f.write('\n')
 
         # connect read signals
@@ -355,8 +363,13 @@ def update_module_file(module):
         for reg in module.regs:
             is_single_bit = reg.msb == reg.lsb
             if 'r' in reg.permission:
-                f.write('    regs_read_arr(%d)(%s) <= %s;\n' % (unique_addresses.index(reg.address), VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_BIT' if is_single_bit else VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_MSB' + ' downto ' + VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_LSB', reg.signal))
-
+                adr = unique_addresses.index(reg.address)
+                if is_single_bit:
+                    bitrange = VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + "_BIT"
+                else:
+                    bitrange = VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + "_MSB" + \
+                        " downto " +VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + "_LSB"
+                f.write('    regs_read_arr(%d)(%s) <= %s;\n' % (adr, bitrange, reg.signal))
         f.write('\n')
 
         # connect write signals
@@ -364,8 +377,13 @@ def update_module_file(module):
         for reg in module.regs:
             is_single_bit = reg.msb == reg.lsb
             if 'w' in reg.permission and reg.signal is not None:
-                f.write('    %s <= regs_write_arr(%d)(%s);\n' % (reg.signal, unique_addresses.index(reg.address), VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_BIT' if is_single_bit else VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_MSB' + ' downto ' + VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_LSB'))
-
+                adr = unique_addresses.index(reg.address)
+                if is_single_bit:
+                    bitrange = VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + "_BIT"
+                else:
+                    bitrange = VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + "_MSB" + \
+                        " downto " + VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + "_LSB"
+                f.write('    %s <= regs_write_arr(%d)(%s);\n' % (reg.signal, adr, bitrange))
         f.write('\n')
 
         def write_pulse_error (f, reg_type, address, name):
@@ -386,8 +404,8 @@ def update_module_file(module):
                     duplicate_write_pulse_error = True
                     write_pulse_error(f, "write pulse", str(unique_addresses.index(reg.address)), module.name)
                 write_pulse_addresses.append(unique_addresses.index(reg.address))
-                f.write('    %s <= regs_write_pulse_arr(%d);\n' % (reg.write_pulse_signal, unique_addresses.index(reg.address)))
-
+                f.write('    %s <= regs_write_pulse_arr(%d);\n' % (reg.write_pulse_signal,
+                                                                   unique_addresses.index(reg.address)))
         f.write('\n')
 
         # connect write done signals
@@ -400,8 +418,8 @@ def update_module_file(module):
                     duplicate_write_done_error = True
                     write_pulse_error(f, "write done", str(unique_addresses.index(reg.address)), module.name)
                 write_done_addresses.append(unique_addresses.index(reg.address))
-                f.write('    regs_write_done_arr(%d) <= %s;\n' % (unique_addresses.index(reg.address), reg.write_done_signal))
-
+                f.write('    regs_write_done_arr(%d) <= %s;\n' % (unique_addresses.index(reg.address),
+                                                                  reg.write_done_signal))
         f.write('\n')
 
         # connect read pulse signals
@@ -414,8 +432,8 @@ def update_module_file(module):
                     duplicate_read_pulse_error = True
                     write_pulse_error(f, "read pulse", str(unique_addresses.index(reg.address)), module.name)
                 read_pulse_addresses.append(unique_addresses.index(reg.address))
-                f.write('    %s <= regs_read_pulse_arr(%d);\n' % (reg.read_pulse_signal, unique_addresses.index(reg.address)))
-
+                f.write('    %s <= regs_read_pulse_arr(%d);\n' % (reg.read_pulse_signal,
+                                                                  unique_addresses.index(reg.address)))
         f.write('\n')
 
         # connect counter signals
@@ -466,7 +484,6 @@ def update_module_file(module):
         # connect rate signals
         f.write('    -- Connect rate instances\n')
         for reg in module.regs:
-
             if reg.fw_rate_en_signal is not None:
                 f.write ("\n")
                 f.write ('    RATE_CNT_%s : entity work.rate_counter\n' % (reg.get_vhdl_name()))
@@ -481,7 +498,6 @@ def update_module_file(module):
                 f.write ('        rate_o               => %s\n'  % (reg.signal))
                 f.write ('    );\n')
                 f.write ('\n')
-
         f.write('\n')
 
         # connect read ready signals
