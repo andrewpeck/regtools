@@ -17,9 +17,9 @@ CONFIG_OH = {
 }
 
 CONFIG_AMC = {
-    'ADDRESS_TABLE_TOP'             : './address_table/gem_amc_top.xml',
-    'CONSTANTS_FILE'                : '../common/hdl/pkg/registers.vhd',
-    'DOC_FILE'                      : '../doc/latex/table2.tex',
+    'ADDRESS_TABLE_TOP'             : '../address_table/gem/gem_amc.xml',
+    'CONSTANTS_FILE'                : '../gem/hdl/pkg/registers.vhd',
+    'DOC_FILE'                      : '../doc/latex/address_table.tex',
     'PACKAGE_FILE'                  : '',
     'TOP_NODE_NAME'                 : 'GEM_AMC'
 }

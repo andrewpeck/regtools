@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import os.path
+from os import mkdir
 
 # returns the number of required 32 bit registers for this module -- basically it counts the number of registers with different addresses
 def get_num_required_regs32(module):
@@ -94,6 +96,21 @@ def substitute_vars(string, variables):
     for key in variables.keys():
         ret = ret.replace('${' + key + '}', str(variables[key]))
     return ret
+
+def updateFilename(fname, prefix, suffix):
+    path_split = fname.split("/")
+    fname_split = path_split[-1].split(".")
+    path_split[-1] = prefix + fname_split[0] + suffix + "." + fname_split[1]
+    
+    new_path_split = os.path.join(*path_split).split("/")
+    for i in range(len(new_path_split) - 1):
+        d = os.path.join(*new_path_split[:i+1])
+        try:
+            mkdir(d)
+        except OSError as err:
+            pass        
+    
+    return os.path.join(*path_split)
 
 class Module:
     top_node_name=""
