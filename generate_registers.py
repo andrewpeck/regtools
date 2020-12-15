@@ -147,6 +147,9 @@ def main():
 
 def find_registers(node, base_name, base_address, modules, current_module, variables, is_generated):
 
+    if node.get('ignore') is not None and eval(node.get('ignore')) == True:
+        return
+
     if is_generated in (None, False) \
        and node.get('generate') is not None \
        and node.get('generate') == 'true':
