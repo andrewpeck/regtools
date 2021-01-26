@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+from __future__ import unicode_literals
+from __future__ import print_function
+
 from insert_code import insert_code
 from utils import *
 
