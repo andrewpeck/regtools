@@ -10,10 +10,10 @@ CONFIG_TEST = {
 }
 
 CONFIG_OH = {
-    'ADDRESS_TABLE_TOP'             : '../optohybrid_registers.xml',
-    'CONSTANTS_FILE'                : '../src/pkg/registers.vhd',
-    'DOC_FILE'                      : '../doc/latex/address_table.tex',
-    'PACKAGE_FILE'                  : '../src/pkg/ipbus_pkg.vhd',
+    'ADDRESS_TABLE_TOP'             : '../address_table/gem/optohybrid_registers.xml',
+    'CONSTANTS_FILE'                : '../gem/hdl/oh_fe/pkg/registers.vhd',
+    'DOC_FILE'                      : '', # ../doc/latex/address_table.tex
+    'PACKAGE_FILE'                  : '../gem/hdl/oh_fe/pkg/ipbus_pkg.vhd',
     'TOP_NODE_NAME'                 : 'FPGA',
     'USE_TMR'                       : True
 }
