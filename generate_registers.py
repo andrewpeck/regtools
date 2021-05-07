@@ -60,24 +60,19 @@ def main():
                         dest='suffix',
                         help="Specify an optional suffix to copy the file onto")
 
-    parser.add_argument('board_type',
-                        help="Choose board type (ctp7 or glib or oh)")
+    parser.add_argument('config_name',
+                        help="Choose a config from the config.py file (e.g. gem_amc, csc_fed, oh)")
 
     args = parser.parse_args()
 
-    board_type = args.board_type
+    config_name = args.config_name
     global VERBOSE
     VERBOSE = args.verbose
 
-    if board_type in ('glib', 'ctp7', 'cvp13', 'apex', 'apd1'):
-        config = CONFIG_AMC
-    elif board_type == 'test':
-        config = CONFIG_TEST
-    elif board_type == 'oh':
-        config = CONFIG_OH
-    else:
-        print ()
-        sys.exit(1)
+    if not config_name in CONFIGS:
+        raise ValueError('Config name "%s" does not exist in config.py' % config_name)
+
+    config = CONFIGS[config_name]
 
     global ADDRESS_TABLE_TOP
     global CONSTANTS_FILE
