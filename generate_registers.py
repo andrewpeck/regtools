@@ -304,6 +304,7 @@ def update_module_file(module, prefix, suffix, use_tmr):
     def write_slaves (filename):
         f=filename
         slave_entity = "ipbus_slave_tmr" if use_tmr else "ipbus_slave"
+        tmr_output = '           tmr_err_o              => ipb_slave_tmr_err\n' if use_tmr else ""
         slave_declaration = '    ipbus_slave_inst : entity work.%s\n' % slave_entity + \
                             '        generic map(\n' + \
                            ('           g_ENABLE_TMR           => %s,\n' % ('EN_TMR_IPB_SLAVE_'     + module.get_vhdl_name()) if use_tmr else "") + \
@@ -318,6 +319,7 @@ def update_module_file(module, prefix, suffix, use_tmr):
                             '           ipb_mosi_i             => %s,\n' % (module.master_bus) + \
                             '           ipb_miso_o             => %s,\n' % (module.slave_bus) + \
                             '           usr_clk_i              => %s,\n' % (module.user_clock) + \
+                            tmr_output + \
                             '           regs_read_arr_i        => regs_read_arr,\n'\
                             '           regs_write_arr_o       => regs_write_arr,\n'\
                             '           read_pulse_arr_o       => regs_read_pulse_arr,\n'\
@@ -326,8 +328,7 @@ def update_module_file(module, prefix, suffix, use_tmr):
                             '           regs_write_done_arr_i  => regs_write_done_arr,\n'\
                             '           individual_addrs_arr_i => regs_addresses,\n'\
                             '           regs_defaults_arr_i    => regs_defaults,\n'\
-                            '           writable_regs_i        => regs_writable_arr,\n'\
-                            '           tmr_err_o              => ipb_slave_tmr_err\n'\
+                            '           writable_regs_i        => regs_writable_arr\n'\
                             '      );\n'
 
         f.write('\n')
