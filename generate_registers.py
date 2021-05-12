@@ -304,7 +304,7 @@ def update_module_file(module, prefix, suffix, use_tmr):
     def write_slaves (filename):
         f=filename
         slave_entity = "ipbus_slave_tmr" if use_tmr else "ipbus_slave"
-        tmr_output = '           tmr_err_o              => ipb_slave_tmr_err\n' if use_tmr else ""
+        tmr_output = '           tmr_err_o              => ipb_slave_tmr_err,\n' if use_tmr else ""
         slave_declaration = '    ipbus_slave_inst : entity work.%s\n' % slave_entity + \
                             '        generic map(\n' + \
                            ('           g_ENABLE_TMR           => %s,\n' % ('EN_TMR_IPB_SLAVE_'     + module.get_vhdl_name()) if use_tmr else "") + \
