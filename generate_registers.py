@@ -306,7 +306,7 @@ def update_module_file(module, prefix, suffix, use_tmr):
         slave_entity = "ipbus_slave_tmr" if use_tmr else "ipbus_slave"
         slave_declaration = '    ipbus_slave_inst : entity work.%s\n' % slave_entity + \
                             '        generic map(\n' + \
-                            ('           g_ENABLE_TMR           => %s,\n' % ('EN_TMR_IPB_SLAVE_'     + module.get_vhdl_name()) if use_tmr else "") + \
+                           ('           g_ENABLE_TMR           => %s,\n' % ('EN_TMR_IPB_SLAVE_'     + module.get_vhdl_name()) if use_tmr else "") + \
                             '           g_NUM_REGS             => %s,\n' % (VHDL_REG_CONSTANT_PREFIX + module.get_vhdl_name() + '_NUM_REGS') + \
                             '           g_ADDR_HIGH_BIT        => %s,\n' % (VHDL_REG_CONSTANT_PREFIX + module.get_vhdl_name() + '_ADDRESS_MSB') + \
                             '           g_ADDR_LOW_BIT         => %s,\n' % (VHDL_REG_CONSTANT_PREFIX + module.get_vhdl_name() + '_ADDRESS_LSB') + \
@@ -326,7 +326,8 @@ def update_module_file(module, prefix, suffix, use_tmr):
                             '           regs_write_done_arr_i  => regs_write_done_arr,\n'\
                             '           individual_addrs_arr_i => regs_addresses,\n'\
                             '           regs_defaults_arr_i    => regs_defaults,\n'\
-                            '           writable_regs_i        => regs_writable_arr\n'\
+                            '           writable_regs_i        => regs_writable_arr,\n'\
+                            '           tmr_err_o              => ipb_slave_tmr_err\n'\
                             '      );\n'
 
         f.write('\n')
@@ -440,8 +441,12 @@ def update_module_file(module, prefix, suffix, use_tmr):
 
             # COUNTER WITH SNAP
             if reg.fw_cnt_en_signal is not None and reg.fw_cnt_snap_signal != '\'1\'':
+                if (reg.fw_cnt_use_tmr):
+                    tmr = "_tmr"
+                else:
+                    tmr = ""
                 f.write ("\n")
-                f.write ('    COUNTER_%s : entity work.counter_snap\n' % (reg.get_vhdl_name()))
+                f.write ('    COUNTER_%s : entity work.counter_snap%s\n' % (reg.get_vhdl_name(), tmr))
                 f.write ('    generic map (\n')
                 if reg.fw_cnt_increment_step!='1':
                     f.write ('        g_INCREMENT_STEP => %s,\n' % (reg.fw_cnt_increment_step))
@@ -688,6 +693,8 @@ def process_register(name, base_address, node, module, modules, variables):
             reg.fw_cnt_reset_signal = module.bus_reset
         if node.get('fw_cnt_snap_signal') is not None:
             reg.fw_cnt_snap_signal = substitute_vars (node.get('fw_cnt_snap_signal'),variables)
+        if node.get('fw_cnt_use_tmr') is not None:
+            reg.fw_cnt_use_tmr = node.get('fw_cnt_use_tmr')
         if node.get('fw_cnt_allow_rollover_signal') is not None:
             reg.fw_cnt_allow_rollover_signal = substitute_vars (node.get('fw_cnt_allow_rollover_signal'),variables)
         if node.get('fw_cnt_increment_step_signal') is not None:

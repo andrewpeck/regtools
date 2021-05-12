@@ -200,6 +200,7 @@ class Register:
 
     # count signals
     fw_cnt_snap_signal    = '\'1\''
+    fw_cnt_use_tmr        = 'true'
     fw_cnt_allow_rollover = 'false'
     fw_cnt_increment_step = '1'
     fw_cnt_reset_signal   = None
