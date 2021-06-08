@@ -242,11 +242,11 @@ def write_constants_file(modules, filename):
                             'integer := ' + str(reg.lsb) + ';\n')
             if reg.default==-1:
                 f.write('  --constant ' + VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_DEFAULT should be supplied externally\n')
-            elif reg.default is not None and reg.msb - reg.lsb > 0:
+            elif reg.default is not None and isinstance(reg.default, int) and reg.msb - reg.lsb > 0:
                 f.write('    constant ' + VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_DEFAULT : '\
                             'std_logic_vector(' + str(reg.msb) + ' downto ' + str(reg.lsb) + ') := ' + \
                             vhdl_hex_padded(reg.default, reg.msb - reg.lsb + 1)  + ';\n')
-            elif reg.default is not None and reg.msb - reg.lsb == 0:
+            elif reg.default is not None and isinstance(reg.default, int) and reg.msb - reg.lsb == 0:
                 f.write('    constant ' + VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_DEFAULT : '\
                             'std_logic := ' + \
                             vhdl_hex_padded(reg.default, reg.msb - reg.lsb + 1)  + ';\n')
@@ -543,10 +543,16 @@ def update_module_file(module, prefix, suffix, use_tmr):
                     bit_suffix = '_MSB' + ' downto ' + VHDL_REG_CONSTANT_PREFIX \
                         + reg.get_vhdl_name() + '_LSB'
 
-                f.write('    regs_defaults(%d)(%s) <= %s;\n' % \
-                        (unique_addresses.index(reg.address), \
-                            VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + bit_suffix,
-                            VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_DEFAULT'))
+                if isinstance(reg.default, int):
+                    f.write('    regs_defaults(%d)(%s) <= %s;\n' % \
+                            (unique_addresses.index(reg.address), \
+                                VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + bit_suffix,
+                                VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + '_DEFAULT'))
+                else:
+                    f.write('    regs_defaults(%d)(%s) <= %s;\n' % \
+                            (unique_addresses.index(reg.address), \
+                                VHDL_REG_CONSTANT_PREFIX + reg.get_vhdl_name() + bit_suffix,
+                                reg.default))
 
         f.write('\n')
 
@@ -669,7 +675,10 @@ def process_register(name, base_address, node, module, modules, variables):
         else:
             USED_REGISTER_SPACE[global_address] = reg.mask
 
-        reg.default = parse_int(node.get('fw_default'))
+        try:
+            reg.default = parse_int(node.get('fw_default'))
+        except:
+            reg.default = node.get('fw_default')
         if node.get('fw_signal') is not None:
             reg.signal = substitute_vars(node.get('fw_signal'), variables)
         if node.get('fw_write_pulse_signal') is not None:
