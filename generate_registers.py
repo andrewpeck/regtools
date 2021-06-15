@@ -311,7 +311,8 @@ def update_module_file(module, prefix, suffix, use_tmr):
                             '           g_NUM_REGS             => %s,\n' % (VHDL_REG_CONSTANT_PREFIX + module.get_vhdl_name() + '_NUM_REGS') + \
                             '           g_ADDR_HIGH_BIT        => %s,\n' % (VHDL_REG_CONSTANT_PREFIX + module.get_vhdl_name() + '_ADDRESS_MSB') + \
                             '           g_ADDR_LOW_BIT         => %s,\n' % (VHDL_REG_CONSTANT_PREFIX + module.get_vhdl_name() + '_ADDRESS_LSB') + \
-                            '           g_USE_INDIVIDUAL_ADDRS => true\n'\
+                            '           g_USE_INDIVIDUAL_ADDRS => true,\n'\
+                            '           g_IPB_CLK_PERIOD_NS    => g_IPB_CLK_PERIOD_NS\n'\
                             '       )\n'\
                             '       port map(\n'\
                             '           ipb_reset_i            => %s,\n' % (module.bus_reset) + \
