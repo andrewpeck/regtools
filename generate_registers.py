@@ -273,6 +273,14 @@ def update_module_file(module, prefix, suffix, use_tmr):
         raise ValueError('Registers library not included in %s -- \
             please add "use work.registers.all;"' % module.file_name)
 
+    def check_for_ipb_clk_period_generic (filename):
+        search = open(filename)
+        for line in search:
+            if ("g_IPB_CLK_PERIOD_NS" in line) and ("integer" in line):
+                return True
+        print("===== WARNING: g_IPB_CLK_PERIOD_NS generic is not present in %s, using a default value of 20ns =====" % filename)
+        return False
+
     def write_signals (filename):
         signal_declaration        = "    signal regs_read_arr        : t_std32_array(<num_regs> - 1 downto 0) := (others => (others => '0'));\n"\
             "    signal regs_write_arr       : t_std32_array(<num_regs> - 1 downto 0) := (others => (others => '0'));\n"\
@@ -302,6 +310,7 @@ def update_module_file(module, prefix, suffix, use_tmr):
                 filename.write ('    signal %s : std_logic_vector (%s downto 0) := (others => \'0\');\n' % (reg.signal,  reg.msb-reg.lsb))
 
     def write_slaves (filename):
+        ipb_clk_period = "g_IPB_CLK_PERIOD_NS" if check_for_ipb_clk_period_generic(filename) else "20"
         f=filename
         slave_entity = "ipbus_slave_tmr" if use_tmr else "ipbus_slave"
         tmr_output = '           tmr_err_o              => ipb_slave_tmr_err,\n' if use_tmr else ""
@@ -312,7 +321,7 @@ def update_module_file(module, prefix, suffix, use_tmr):
                             '           g_ADDR_HIGH_BIT        => %s,\n' % (VHDL_REG_CONSTANT_PREFIX + module.get_vhdl_name() + '_ADDRESS_MSB') + \
                             '           g_ADDR_LOW_BIT         => %s,\n' % (VHDL_REG_CONSTANT_PREFIX + module.get_vhdl_name() + '_ADDRESS_LSB') + \
                             '           g_USE_INDIVIDUAL_ADDRS => true,\n'\
-                            '           g_IPB_CLK_PERIOD_NS    => g_IPB_CLK_PERIOD_NS\n'\
+                            '           g_IPB_CLK_PERIOD_NS    => %s\n' % (ipb_clk_period) + \
                             '       )\n'\
                             '       port map(\n'\
                             '           ipb_reset_i            => %s,\n' % (module.bus_reset) + \
