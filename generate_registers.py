@@ -309,8 +309,8 @@ def update_module_file(module, prefix, suffix, use_tmr):
                     header_written = True;
                 filename.write ('    signal %s : std_logic_vector (%s downto 0) := (others => \'0\');\n' % (reg.signal,  reg.msb-reg.lsb))
 
-    def write_slaves (filename):
-        ipb_clk_period = "g_IPB_CLK_PERIOD_NS" if check_for_ipb_clk_period_generic(filename) else "20"
+    def write_slaves (filename, args):
+        ipb_clk_period = "g_IPB_CLK_PERIOD_NS" if args["has_ipb_clk_period_generic"] else "20"
         f=filename
         slave_entity = "ipbus_slave_tmr" if use_tmr else "ipbus_slave"
         tmr_output = '           tmr_err_o              => ipb_slave_tmr_err,\n' if use_tmr else ""
@@ -597,12 +597,13 @@ def update_module_file(module, prefix, suffix, use_tmr):
 
 
     check_for_library_declaration(module.file_name)
+    has_ipb_clk_period_generic = check_for_ipb_clk_period_generic(module.file_name)
 
     out_fname = updateFilename(module.file_name, prefix, suffix)
     insert_code (module.file_name, out_fname, VHDL_REG_SIGNAL_MARKER_START, \
                  VHDL_REG_SIGNAL_MARKER_END, write_signals)
     insert_code (out_fname, out_fname, VHDL_REG_SLAVE_MARKER_START, \
-                 VHDL_REG_SLAVE_MARKER_END, write_slaves)
+                 VHDL_REG_SLAVE_MARKER_END, write_slaves, {"has_ipb_clk_period_generic": has_ipb_clk_period_generic})
 
 def process_module (name, node, modules, variables):
     module = Module(TOP_NODE_NAME)

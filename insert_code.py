@@ -5,7 +5,7 @@ import shutil
 import tempfile
 import sys
 
-def insert_code (input_file_name, output_file_name, marker_start, marker_end, write_function):
+def insert_code (input_file_name, output_file_name, marker_start, marker_end, write_function, write_function_args = {}):
     """"""
 
     file = io.open (input_file_name, "r", newline='')
@@ -59,7 +59,10 @@ def insert_code (input_file_name, output_file_name, marker_start, marker_end, wr
         if (start_found and not end_found and not wrote_constraints):
             wrote_constraints = True
 
-            write_function(file)
+            if len(write_function_args) > 0:
+                write_function(file, write_function_args)
+            else:
+                write_function(file)
 
     file.close()
     shutil.copy (tempname, output_file_name)
