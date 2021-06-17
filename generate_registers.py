@@ -310,7 +310,7 @@ def update_module_file(module, prefix, suffix, use_tmr):
                 filename.write ('    signal %s : std_logic_vector (%s downto 0) := (others => \'0\');\n' % (reg.signal,  reg.msb-reg.lsb))
 
     def write_slaves (filename, args):
-        ipb_clk_period = "g_IPB_CLK_PERIOD_NS" if args["has_ipb_clk_period_generic"] else "20"
+        ipb_clk_period = "g_IPB_CLK_PERIOD_NS" if args["has_ipb_clk_period_generic"] else "25"
         f=filename
         slave_entity = "ipbus_slave_tmr" if use_tmr else "ipbus_slave"
         tmr_output = '           tmr_err_o              => ipb_slave_tmr_err,\n' if use_tmr else ""
