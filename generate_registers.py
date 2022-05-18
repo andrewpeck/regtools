@@ -221,7 +221,7 @@ def write_constants_file(modules, filename, prefix, suffix):
         f = filename
         use_flavor = args["use_flavor"]
         for module in modules:
-            if module.is_external or module.use_flavor != use_flavor:
+            if module.is_external or (module.use_flavor != use_flavor and FLAVOR != ""):
                 continue
 
             flav = "_" + FLAVOR.upper() if module.use_flavor and FLAVOR != "" else ""
