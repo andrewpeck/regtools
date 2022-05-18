@@ -288,8 +288,9 @@ def write_constants_file(modules, filename, prefix, suffix):
     insert_code (source_fname, out_fname, VHDL_REG_SLAVE_MARKER_START, \
                  VHDL_REG_SLAVE_MARKER_END, write_constants, {"use_flavor": False})
 
-    insert_code (out_fname, out_fname, VHDL_REG_SLAVE_MARKER_START + " " + FLAVOR, \
-                 VHDL_REG_SLAVE_MARKER_END + " " + FLAVOR, write_constants, {"use_flavor": True})
+    if FLAVOR is not None and FLAVOR != "":
+        insert_code (out_fname, out_fname, VHDL_REG_SLAVE_MARKER_START + " " + FLAVOR, \
+                     VHDL_REG_SLAVE_MARKER_END + " " + FLAVOR, write_constants, {"use_flavor": True})
 
     print("    > DONE" )
 
