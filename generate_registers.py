@@ -739,7 +739,7 @@ def process_register(name, base_address, node, module, modules, variables):
         try:
             reg.default = parse_int(node.get('fw_default'))
         except:
-            reg.default = node.get('fw_default')
+            reg.default = substitute_vars(node.get('fw_default'), variables)
         if node.get('fw_signal') is not None:
             reg.signal = substitute_vars(node.get('fw_signal'), variables)
         if node.get('fw_write_pulse_signal') is not None:
