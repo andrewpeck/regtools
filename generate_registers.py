@@ -81,6 +81,16 @@ def main():
 
     args = parser.parse_args()
 
+    print("==================== Register Generator ====================")
+    print("Launched with parameters:")
+    print("    Config name: %s" % args.config_name)
+    print("    Address table: %s" % ("None" if args.address_table is None else args.address_table))
+    print("    Prefix: %s" % ("None" if args.prefix is None else args.prefix))
+    print("    Suffix: %s" % ("None" if args.suffix is None else args.suffix))
+    print("    Flavor: %s" % ("None" if args.flavor is None else args.flavor))
+    print("    Update generated file: %s" % ("None" if args.update_generated is None else args.update_generated))
+    print("")
+
     config_name = args.config_name
     global VERBOSE
     VERBOSE = args.verbose
