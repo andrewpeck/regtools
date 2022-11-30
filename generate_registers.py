@@ -502,7 +502,7 @@ def update_module_file(module, prefix, suffix, use_tmr):
 
             # COUNTER WITH SNAP
             if reg.fw_cnt_en_signal is not None and reg.fw_cnt_snap_signal != '\'1\'':
-                if (reg.fw_cnt_use_tmr):
+                if (reg.fw_cnt_use_tmr=="True"):
                     tmr = "_tmr"
                 else:
                     tmr = ""
